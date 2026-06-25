@@ -5,7 +5,7 @@ import { PUBLIC_API_URL } from '$env/static/public';
 /** Browser client — credentials:include so cookies are forwarded automatically. */
 export const api = createClient<paths>({
 	baseUrl: PUBLIC_API_URL,
-	credentials: 'include',
+	credentials: 'include'
 });
 
 /**
@@ -16,6 +16,6 @@ export function serverApi(fetchFn: typeof fetch, accessToken?: string | null) {
 	return createClient<paths>({
 		baseUrl: PUBLIC_API_URL,
 		fetch: fetchFn,
-		headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+		headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {}
 	});
 }

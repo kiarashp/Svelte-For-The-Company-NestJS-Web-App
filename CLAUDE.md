@@ -82,9 +82,9 @@ These are **reference and tracking** files — consult them when relevant, keep 
 
 ## Environment variables
 
-Two config layers: compile-time branding **defaults** in `src/lib/config/site.ts`, and runtime
-**env vars** that override them. Check `src/lib/config/site.ts` before reaching for `$env` — most
-branding values already have defaults there.
+Two config layers: compile-time branding **defaults** in `src/lib/config/site.ts`, and
+**build-time env vars** (`$env/static/public`) that override them. Check `src/lib/config/site.ts`
+before reaching for `$env` — most branding values already have defaults there.
 
 ```
 PUBLIC_API_URL=http://localhost:3000     # NestJS backend base URL (required)
@@ -109,17 +109,25 @@ company-specific string anywhere.
 
 ```ts
 // src/lib/config/site.ts
-import { env } from '$env/static/public';
+import {
+  PUBLIC_SITE_NAME,
+  PUBLIC_SITE_TAGLINE,
+  PUBLIC_SITE_LOGO_URL,
+  PUBLIC_SUPPORT_EMAIL,
+  PUBLIC_TWITTER_URL,
+  PUBLIC_LINKEDIN_URL,
+  PUBLIC_GITHUB_URL,
+} from '$env/static/public';
 
 export const SITE_CONFIG = {
-  name: env.PUBLIC_SITE_NAME || 'Acme Corp',
-  tagline: env.PUBLIC_SITE_TAGLINE || 'Building things that matter',
-  logoUrl: env.PUBLIC_SITE_LOGO_URL || '/logo.svg',
-  supportEmail: env.PUBLIC_SUPPORT_EMAIL || 'hello@acme.com',
+  name: PUBLIC_SITE_NAME || 'Acme Corp',
+  tagline: PUBLIC_SITE_TAGLINE || 'Building things that matter',
+  logoUrl: PUBLIC_SITE_LOGO_URL || '/logo.svg',
+  supportEmail: PUBLIC_SUPPORT_EMAIL || 'hello@acme.com',
   socialLinks: {
-    twitter: env.PUBLIC_TWITTER_URL || '',
-    linkedin: env.PUBLIC_LINKEDIN_URL || '',
-    github: env.PUBLIC_GITHUB_URL || '',
+    twitter: PUBLIC_TWITTER_URL || '',
+    linkedin: PUBLIC_LINKEDIN_URL || '',
+    github: PUBLIC_GITHUB_URL || '',
   },
 } as const;
 
