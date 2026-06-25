@@ -165,6 +165,9 @@ export const load = async ({ locals }) => {
 - `src/lib/state/theme.svelte.ts` holds module-level `$state` for the current preference plus
   cookie read/write helpers. Import `getPreference` / `setPreference` / `getResolved` from it.
   Components do not need local state or `onMount` — the module state is reactive.
+  **Import convention:** when using a `$lib` alias, omit the `.ts` extension:
+  `import { getPreference } from '$lib/state/theme.svelte'` — TypeScript resolves `theme.svelte.ts`
+  automatically; the `.ts` suffix on an alias path causes a type-check error.
 - When state genuinely needs to be shared across files, use a `.svelte.ts` module with runes
   (`$state` / `$derived`) — never `svelte/store` (`writable` / `readable` / `derived`).
 - Prefer derived UI state in components over shared modules unless it is genuinely cross-component.
