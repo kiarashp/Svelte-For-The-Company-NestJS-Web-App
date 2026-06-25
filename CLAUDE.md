@@ -219,6 +219,22 @@ Mechanical enforcement: `pnpm lint && pnpm check` must pass before any Svelte wo
 
 ---
 
+## Comments
+
+Write comments when the **why** is not obvious from the code itself. Skip them when the code reads clearly on its own.
+
+Rules:
+- Keep comments short — one line is almost always enough.
+- Write in plain, direct English. No analogies.
+- Use simpler technical terms when possible (`cookie` not `persistent client-side storage`).
+- Write for both a junior and a senior reader: explain the intent, not the mechanics.
+- Do not restate what the code does; explain why it does it or what constraint drives it.
+
+✅  `// refresh token is short-lived — always re-read from cookie, never cache`  
+❌  `// this line reads the refresh token from the cookie and assigns it to the variable`
+
+---
+
 ## Global "do not" list
 
 - ❌ Do not install GSAP, Framer Motion, Motion One, or any animation library. Svelte built-ins only.

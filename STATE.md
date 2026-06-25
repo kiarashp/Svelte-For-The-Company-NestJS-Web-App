@@ -26,7 +26,7 @@ _Last updated: 2026-06-27_
 | 0 | **ESLint gate** | ✅ | root CLAUDE.md |
 | 1 | **Remove Tailwind** | ✅ | root CLAUDE.md → stack + do-not list |
 | 2 | **Design tokens** | ✅ | DESIGN_SYSTEM.md → `tokens.css` (primitives + semantic + non-color) |
-| 3 | **`app.html`** | ⬜ | DESIGN_SYSTEM.md → inline no-flash script |
+| 3 | **`app.html`** | ✅ | DESIGN_SYSTEM.md → inline no-flash script |
 | 4 | **Types (`app.d.ts`)** | ⬜ | src/CLAUDE.md → `app.d.ts` block |
 | 5 | **API client** | ⬜ | src/CLAUDE.md → `client.ts` block |
 | 6 | **Branding config** | ⬜ | root CLAUDE.md → SITE_CONFIG section |

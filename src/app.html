@@ -4,6 +4,28 @@
 		<meta charset="utf-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1" />
 		<meta name="text-scale" content="scale" />
+		<!-- Runs before any stylesheet to prevent a flash of the wrong theme.
+		     Reads the theme cookie, falls back to OS preference if unset. -->
+		<script>
+			(function () {
+				// Silently skip if cookies or matchMedia are unavailable (e.g. old browser, sandboxed iframe).
+				try {
+					var m = document.cookie.match(/(?:^|; )theme=([^;]+)/);
+					var pref = m ? decodeURIComponent(m[1]) : 'system';
+					var resolved =
+						pref === 'light' || pref === 'dark'
+							? pref
+							: window.matchMedia('(prefers-color-scheme: dark)').matches
+								? 'dark'
+								: 'light';
+					document.documentElement.setAttribute('data-theme', resolved);
+					// Write cookie so the server knows the preference on the next request.
+					if (!m) {
+						document.cookie = 'theme=system; path=/; max-age=31536000; samesite=lax';
+					}
+				} catch (e) {}
+			})();
+		</script>
 		%sveltekit.head%
 	</head>
 	<body data-sveltekit-preload-data="hover">
