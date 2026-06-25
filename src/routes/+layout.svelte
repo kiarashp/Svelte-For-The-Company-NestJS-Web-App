@@ -1,6 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
+	import { resolve } from '$app/paths';
 	import '$lib/styles/global.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { initPreference, getPreference } from '$lib/state/theme.svelte';
@@ -28,4 +29,42 @@
 </script>
 
 <svelte:head><link rel="icon" href={favicon} /></svelte:head>
+
+<!-- Temporary dev nav — remove once the real public header is built in Phase 3. -->
+<nav class="dev-nav">
+	{#if page.data.user}
+		<span class="user-label">{page.data.user.email}</span>
+		<a href={resolve('/logout')}>Sign out</a>
+	{:else}
+		<a href={resolve('/login')}>Sign in</a>
+		<a href={resolve('/register')}>Register</a>
+	{/if}
+</nav>
+
 {@render children()}
+
+<style>
+	.dev-nav {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 0.5rem 1rem;
+		background: var(--color-surface);
+		border-bottom: 1px solid var(--color-border);
+		font-size: 0.875rem;
+	}
+
+	.user-label {
+		color: var(--color-text-muted);
+		margin-right: auto;
+	}
+
+	.dev-nav a {
+		color: var(--color-primary);
+		text-decoration: none;
+	}
+
+	.dev-nav a:hover {
+		text-decoration: underline;
+	}
+</style>
