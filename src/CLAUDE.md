@@ -17,7 +17,7 @@ src/
     config/site.ts       # SITE_CONFIG branding (root CLAUDE.md)
     components/          # shared PascalCase.svelte components
     state/
-      theme.ts           # theme preference cookie helpers (plain .ts — no reactive state)
+      theme.svelte.ts    # theme preference — module-level $state + cookie helpers
     styles/
       tokens.css         # primitives + semantic + non-color tokens
       global.css         # base reset; @import './tokens.css' at the top
@@ -156,8 +156,9 @@ export const load = async ({ locals }) => {
 ## Shared state
 
 - Keep shared state minimal. Auth state comes from `page.data` (via `import { page } from '$app/state'`) — don't duplicate it in a module.
-- `src/lib/state/theme.ts` holds only **preference read/write helpers** (cookie get/set) and the
-  toggle logic. It does not hold auth. Plain `.ts` — no reactive state, no runes.
+- `src/lib/state/theme.svelte.ts` holds module-level `$state` for the current preference plus
+  cookie read/write helpers. Import `getPreference` / `setPreference` / `getResolved` from it.
+  Components do not need local state or `onMount` — the module state is reactive.
 - When state genuinely needs to be shared across files, use a `.svelte.ts` module with runes
   (`$state` / `$derived`) — never `svelte/store` (`writable` / `readable` / `derived`).
 - Prefer derived UI state in components over shared modules unless it is genuinely cross-component.

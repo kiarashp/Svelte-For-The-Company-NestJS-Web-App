@@ -1,29 +1,16 @@
 <script lang="ts">
-	import { onMount } from 'svelte';
-	import { getPreference, setPreference, type ThemePreference } from '$lib/state/theme';
+	import { getPreference, setPreference, type ThemePreference } from '$lib/state/theme.svelte';
 
 	const OPTIONS: ThemePreference[] = ['light', 'dark', 'system'];
-
-	let preference = $state<ThemePreference>('system');
-
-	// onMount — cookie reads are client-only; can't run during SSR
-	onMount(() => {
-		preference = getPreference();
-	});
-
-	function choose(pref: ThemePreference) {
-		preference = pref;
-		setPreference(pref);
-	}
 </script>
 
 <div class="theme-toggle" role="group" aria-label="Color theme">
 	{#each OPTIONS as pref (pref)}
 		<button
 			class="option"
-			class:active={preference === pref}
-			onclick={() => choose(pref)}
-			aria-pressed={preference === pref}
+			class:active={getPreference() === pref}
+			onclick={() => setPreference(pref)}
+			aria-pressed={getPreference() === pref}
 		>
 			{pref[0].toUpperCase() + pref.slice(1)}
 		</button>

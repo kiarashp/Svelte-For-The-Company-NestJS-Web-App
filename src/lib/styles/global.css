@@ -1,3 +1,15 @@
 @import './tokens.css';
 
-/* base reset — added in Step 9 (root layout) */
+*,
+*::before,
+*::after {
+	box-sizing: border-box;
+}
+
+body {
+	margin: 0;
+	background: var(--color-bg);
+	color: var(--color-text);
+	font-family: var(--font-sans);
+	font-size: var(--text-base);
+}
