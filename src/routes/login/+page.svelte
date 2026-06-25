@@ -25,7 +25,10 @@
 			}}
 		>
 			{#if form?.message}
-				<p class="error" role="alert">{form.message}</p>
+				<!-- warning colour when the issue is verification, not wrong credentials -->
+				<p class="error" class:warning={form.message?.includes('verify')} role="alert">
+					{form.message}
+				</p>
 			{/if}
 
 			<label class="field">
@@ -92,6 +95,12 @@
 		border-radius: 0.375rem;
 		color: var(--color-danger);
 		font-size: 0.875rem;
+	}
+
+	/* Unverified-email case uses amber so it reads as "action needed" not "you failed". */
+	.error.warning {
+		border-color: var(--color-warning);
+		color: var(--color-warning);
 	}
 
 	.field {

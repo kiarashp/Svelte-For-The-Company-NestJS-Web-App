@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
+	import { enhance } from '$app/forms';
 	import '$lib/styles/global.css';
 	import favicon from '$lib/assets/favicon.svg';
 	import { initPreference, getPreference } from '$lib/state/theme.svelte';
@@ -34,7 +35,10 @@
 <nav class="dev-nav">
 	{#if page.data.user}
 		<span class="user-label">{page.data.user.email}</span>
-		<a href={resolve('/logout')}>Sign out</a>
+		<!-- POST directly to the logout action so no confirmation page is needed. -->
+		<form method="POST" action={resolve('/logout')} use:enhance>
+			<button type="submit" class="nav-btn">Sign out</button>
+		</form>
 	{:else}
 		<a href={resolve('/login')}>Sign in</a>
 		<a href={resolve('/register')}>Register</a>
@@ -59,12 +63,23 @@
 		margin-right: auto;
 	}
 
-	.dev-nav a {
+	.dev-nav a,
+	.nav-btn {
 		color: var(--color-primary);
 		text-decoration: none;
 	}
 
-	.dev-nav a:hover {
+	.dev-nav a:hover,
+	.nav-btn:hover {
 		text-decoration: underline;
+	}
+
+	/* Reset button chrome so it looks like a plain link. */
+	.nav-btn {
+		background: none;
+		border: none;
+		padding: 0;
+		font: inherit;
+		cursor: pointer;
 	}
 </style>

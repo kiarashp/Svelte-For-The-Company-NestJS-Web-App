@@ -35,7 +35,19 @@ export const actions: Actions = {
 		}
 
 		if (res.status === 401) {
-			// 401 means bad credentials, not a server error — surface a user-facing message.
+			// Parse the body to distinguish "unverified email" from "bad credentials" —
+			// both are 401 but the backend puts a different message on each.
+			let body: { message?: string } = {};
+			try {
+				body = await res.json();
+			} catch {
+				// Ignore parse failures — fall through to the generic message.
+			}
+
+			if (typeof body.message === 'string' && body.message.toLowerCase().includes('verify')) {
+				return fail(401, { message: 'Please verify your email address before signing in.' });
+			}
+
 			return fail(400, { message: 'Invalid email or password.' });
 		}
 
