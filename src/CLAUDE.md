@@ -91,10 +91,16 @@ password, and fires the email-verification event automatically. There is no sepa
 Runs on every request, before any `load`:
 
 1. Read `access_token` cookie → call `GET /users/me` with `Authorization: Bearer <token>`.
-2. On `401`: read `refresh_token` cookie → `POST /auth/refresh-tokens` with `{ refreshToken }` in body → store new pair as HttpOnly cookies → retry `/users/me`.
-3. Set `event.locals.user` (full shape defined in `app.d.ts` below) and `event.locals.accessToken`, or both `null`.
+2. On `401`: read `refresh_token` cookie → `POST /auth/refresh-tokens` with `{ refreshToken }` in body → store new pair as HttpOnly cookies → retry `/users/me`. On refresh failure (401/403), delete both stale cookies so subsequent requests don't re-attempt two futile API calls.
+3. Set `event.locals.user` (full shape defined in `app.d.ts` below) and `event.locals.accessToken`, or both `null`. These two are always a consistent pair — `accessToken` is only set when `user` is non-null.
 4. Read `theme` cookie → `event.locals.theme`.
-5. Inject `data-theme` onto `<html>` via `transformPageChunk` (SSR zero-flash for explicit preferences).
+5. Inject `data-theme` onto `<html>` via `transformPageChunk` (SSR zero-flash for explicit `light`/`dark`; skip for `system` — the inline matchMedia script in `app.html` handles that).
+
+**openapi-types known limitations for auth endpoints:**
+- `GET /users/me` — response typed as `content?: never` (generator bug). Parse `res.json()` manually and cast to `NonNullable<App.Locals['user']>`.
+- `POST /auth/refresh-tokens` — `RefreshTokenDto` is `Record<string, never>` (generator bug). Build the request body `{ refreshToken }` manually instead of relying on the typed client.
+
+These limitations only affect `hooks.server.ts`. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
 
 ```ts
 // app.d.ts — canonical App.Locals['user'] shape
@@ -304,7 +310,7 @@ config already turns off `prefer-const` inside `.svelte` files.
 ## Don'ts (frontend-specific)
 
 - ❌ Don't read or write tokens/auth in `localStorage`.
-- ❌ Don't bypass `serverApi` / `api` with raw `fetch` to the backend.
+- ❌ Don't bypass `serverApi` / `api` with raw `fetch` to the backend. Exception: `hooks.server.ts` must use raw `event.fetch` because `locals` (and therefore `serverApi`) aren't set yet when the hook runs.
 - ❌ Don't put role-based access gates in components.
 - ❌ Don't add a global store for something a `load` already provides.
 - ❌ Don't write Svelte 4 syntax — the compiler will reject it in runes mode.

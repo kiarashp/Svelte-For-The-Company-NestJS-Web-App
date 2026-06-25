@@ -31,7 +31,7 @@ _Last updated: 2026-06-25_
 | 5 | **API client** | ✅ | src/CLAUDE.md → `client.ts` block |
 | 6 | **Branding config** | ✅ | root CLAUDE.md → SITE_CONFIG section |
 | 7 | **Theme system** | ✅ | DESIGN_SYSTEM.md → toggle + `theme.ts` cookie helpers |
-| 8 | **Auth hooks** | ⬜ | src/CLAUDE.md → `hooks.server.ts` block |
+| 8 | **Auth hooks** | ✅ | src/CLAUDE.md → `hooks.server.ts` block |
 | 9 | **Root layout** | ⬜ | src/CLAUDE.md → `+layout.server.ts` + `+layout.svelte` |
 
 ---

@@ -11,13 +11,19 @@
 	<main class="main">
 		<section class="hero">
 			<h1>Theme demo</h1>
-			<p class="lead">Toggle between Light, Dark, and System above. The background, text, and cards should all switch instantly — and survive a page reload (no flash).</p>
+			<p class="lead">
+				Toggle between Light, Dark, and System above. The background, text, and cards should all
+				switch instantly — and survive a page reload (no flash).
+			</p>
 		</section>
 
 		<section class="cards">
 			<div class="card">
 				<h2>Surface card</h2>
-				<p>This card uses <code>--color-surface</code> so it sits one level above the page background in both themes.</p>
+				<p>
+					This card uses <code>--color-surface</code> so it sits one level above the page background in
+					both themes.
+				</p>
 			</div>
 			<div class="card accent">
 				<h2>Primary action</h2>
@@ -26,7 +32,10 @@
 			</div>
 			<div class="card">
 				<h2>Muted text</h2>
-				<p>Body copy is <code>--color-text</code>. This paragraph is <span class="muted">--color-text-muted</span>.</p>
+				<p>
+					Body copy is <code>--color-text</code>. This paragraph is
+					<span class="muted">--color-text-muted</span>.
+				</p>
 			</div>
 		</section>
 	</main>
