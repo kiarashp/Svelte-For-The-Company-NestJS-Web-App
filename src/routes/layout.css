@@ -1,2 +1,1 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/typography';
+/* global styles — populated in Step 2 (tokens.css) and Step 9 (root layout) */
