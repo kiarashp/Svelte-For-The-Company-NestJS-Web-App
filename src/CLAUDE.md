@@ -40,11 +40,11 @@ config differs between server and client contexts.
 // src/lib/api/client.ts
 import createClient from 'openapi-fetch';
 import type { paths } from '$lib/types/openapi-types';
-import { env } from '$env/static/public';
+import { PUBLIC_API_URL } from '$env/static/public';
 
 /** Browser client — access token is HttpOnly and never readable client-side. */
 export const api = createClient<paths>({
-  baseUrl: env.PUBLIC_API_URL,
+  baseUrl: PUBLIC_API_URL,
   credentials: 'include',
 });
 
@@ -54,7 +54,7 @@ export const api = createClient<paths>({
  */
 export function serverApi(fetchFn: typeof fetch, accessToken?: string | null) {
   return createClient<paths>({
-    baseUrl: env.PUBLIC_API_URL,
+    baseUrl: PUBLIC_API_URL,
     fetch: fetchFn,
     headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
   });
