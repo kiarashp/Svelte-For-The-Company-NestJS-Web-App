@@ -1,4 +1,5 @@
 <script lang="ts">
+	import { resolve } from '$app/paths';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 </script>
 
@@ -6,6 +7,7 @@
 	<header class="header">
 		<span class="site-name">Acme Corp</span>
 		<ThemeToggle />
+		<a href={resolve('/login')} class="nav-link">Sign in</a>
 	</header>
 
 	<main class="main">
@@ -55,6 +57,17 @@
 		padding: var(--space-4) var(--space-8);
 		border-bottom: 1px solid var(--color-border);
 		background: var(--color-surface);
+	}
+
+	.nav-link {
+		font-size: var(--text-sm);
+		font-weight: 500;
+		color: var(--color-primary);
+		text-decoration: none;
+	}
+
+	.nav-link:hover {
+		text-decoration: underline;
 	}
 
 	.site-name {
