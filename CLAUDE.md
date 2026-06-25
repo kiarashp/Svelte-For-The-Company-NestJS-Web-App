@@ -227,19 +227,33 @@ Mechanical enforcement: `pnpm lint && pnpm check` must pass before any Svelte wo
 
 ---
 
-## Comments
+## Comments — REQUIRED, not optional
 
-Write comments when the **why** is not obvious from the code itself. Skip them when the code reads clearly on its own.
+**Default: add a comment.** Only omit one when the code is so self-explanatory that any reader would immediately understand the intent and the constraint behind it.
 
-Rules:
-- Keep comments short — one line is almost always enough.
-- Write in plain, direct English. No analogies.
-- Use simpler technical terms when possible (`cookie` not `persistent client-side storage`).
-- Write for both a junior and a senior reader: explain the intent, not the mechanics.
-- Do not restate what the code does; explain why it does it or what constraint drives it.
+When in doubt, comment. A short explanation is never wrong; unexplained non-obvious code always is.
 
-✅  `// refresh token is short-lived — always re-read from cookie, never cache`  
-❌  `// this line reads the refresh token from the cookie and assigns it to the variable`
+### Always comment these patterns
+
+- **SSR guards** — `if (typeof document === 'undefined')`: say why the guard is needed.
+- **Cookie reads/writes** — name the purpose of the value, not the mechanics of the read.
+- **Immediate DOM mutations** — explain why the change can't wait for a server round-trip.
+- **Non-obvious CSS** — any rule that exists to work around a layout constraint or browser quirk.
+- **Regex** — one line stating what it matches and why.
+- **Auth/token decisions** — why a token lives where it does, why it's read at this point.
+- **Magic numbers** — even "obvious" ones like `31536000` get a unit label.
+- **Any `onMount` that isn't just animation** — explain why the work is client-only.
+
+### Format
+
+- One line, almost always. Two only if truly necessary.
+- Plain English. State the constraint or intent, never the mechanics.
+- Write for a junior reader who knows the language but not the project's decisions.
+
+✅ `// SSR guard — document is undefined on the server`  
+✅ `// write immediately so the color switches without a round-trip`  
+✅ `// keep focus ring visible inside overflow:hidden parent`  
+❌ `// this reads the cookie and returns the value`
 
 ---
 

@@ -3,7 +3,7 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-06-28_
+_Last updated: 2026-06-25_
 
 ---
 
@@ -30,7 +30,7 @@ _Last updated: 2026-06-28_
 | 4 | **Types (`app.d.ts`)** | ✅ | src/CLAUDE.md → `app.d.ts` block |
 | 5 | **API client** | ✅ | src/CLAUDE.md → `client.ts` block |
 | 6 | **Branding config** | ✅ | root CLAUDE.md → SITE_CONFIG section |
-| 7 | **Theme system** | ⬜ | DESIGN_SYSTEM.md → toggle + `theme.ts` cookie helpers |
+| 7 | **Theme system** | ✅ | DESIGN_SYSTEM.md → toggle + `theme.ts` cookie helpers |
 | 8 | **Auth hooks** | ⬜ | src/CLAUDE.md → `hooks.server.ts` block |
 | 9 | **Root layout** | ⬜ | src/CLAUDE.md → `+layout.server.ts` + `+layout.svelte` |
 
