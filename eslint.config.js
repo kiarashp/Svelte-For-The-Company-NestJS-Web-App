@@ -18,9 +18,23 @@ export default defineConfig(
 	{
 		languageOptions: { globals: { ...globals.browser, ...globals.node } },
 		rules: {
-			// typescript-eslint strongly recommend that you do not use the no-undef lint rule on TypeScript projects.
-			// see: https://typescript-eslint.io/troubleshooting/faqs/eslint/#i-get-errors-from-the-no-undef-rule-about-global-variables-not-being-defined-even-though-there-are-no-typescript-errors
-			'no-undef': 'off'
+			'no-undef': 'off',
+
+			// Ban svelte/store primitives project-wide.
+			// The Svelte 5 way is $state/$derived in .svelte.ts modules, not stores.
+			// onMount, getContext, setContext, tick are still fine — only state primitives banned.
+			'no-restricted-imports': [
+				'error',
+				{
+					paths: [
+						{
+							name: 'svelte/store',
+							importNames: ['writable', 'readable', 'derived', 'get'],
+							message: 'Use $state / $derived in a .svelte.ts module instead of Svelte stores.'
+						}
+					]
+				}
+			]
 		}
 	},
 	{
@@ -31,11 +45,32 @@ export default defineConfig(
 				extraFileExtensions: ['.svelte'],
 				parser: ts.parser
 			}
+		},
+		rules: {
+			// Runs the real Svelte compiler — in runes mode (enforced by vite.config.ts) the
+			// compiler itself rejects $:, export let, <slot>, on:event. This rule surfaces
+			// those compile errors as ESLint errors before the build even runs.
+			'svelte/valid-compile': 'error',
+
+			// Enforce lang="ts" on every <script> block.
+			'svelte/block-lang': ['error', { script: ['ts'] }],
+
+			// Prefer $state/$derived/$effect over older reactive patterns where the plugin
+			// can detect the equivalent rune form exists.
+			'svelte/prefer-svelte-reactivity': 'warn',
+
+			// {@html} injects raw HTML — must always be reviewed for sanitization.
+			'svelte/no-at-html-tags': 'warn',
+
+			// Rune declarations use `let`, not `const`.
+			// `let count = $state(0)` — the compiler rewrites this; const would break it.
+			'prefer-const': 'off'
 		}
 	},
 	{
-		// Override or add rule settings here, such as:
-		// 'svelte/button-has-type': 'error'
-		rules: {}
+		files: ['**/*.ts', '**/*.js'],
+		rules: {
+			'prefer-const': 'error'
+		}
 	}
 );

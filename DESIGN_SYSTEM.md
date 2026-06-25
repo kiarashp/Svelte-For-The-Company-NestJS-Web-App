@@ -107,7 +107,7 @@ Three-way: **Light / Dark / System**. On change it:
 2. Updates `<html data-theme>` immediately to the resolved value.
 
 Toggle component lives at `src/lib/components/ThemeToggle.svelte`. The cookie helpers live in
-`src/lib/stores/theme.ts`.
+`src/lib/state/theme.ts`.
 
 ---
 
@@ -237,7 +237,7 @@ Define alongside colors in `tokens.css`. Theme-independent.
 - ✅ Always pair a visible focus state with `--color-focus-ring` for interactive elements.
 
 ```svelte
-<style lang="scss">
+<style>
   .card {
     background: var(--color-surface);
     color: var(--color-text);
@@ -245,9 +245,10 @@ Define alongside colors in `tokens.css`. Theme-independent.
     border-radius: var(--radius-lg);
     padding: var(--space-6);
     box-shadow: var(--shadow-sm);
-  }
-  @media (prefers-reduced-motion: no-preference) {
-    .card { transition: box-shadow var(--duration-base) var(--ease-out); }
+
+    @media (prefers-reduced-motion: no-preference) {
+      transition: box-shadow var(--duration-base) var(--ease-out);
+    }
   }
 </style>
 ```
@@ -256,10 +257,11 @@ Define alongside colors in `tokens.css`. Theme-independent.
 
 ## Load order
 
-In `src/lib/styles/global.scss` (imported once in the root layout):
+In `src/lib/styles/global.css` (imported once in the root layout via `+layout.svelte`):
 
-```scss
-@use 'tokens.css';   /* primitives + semantic + non-color tokens */
-@use 'mixins';       /* SCSS mixins, math, helpers */
-/* then base/reset styles */
+```css
+@import './tokens.css'; /* primitives + semantic + non-color tokens */
+/* then base reset styles */
 ```
+
+No SCSS, no mixins file. Native CSS nesting and `color-mix()` replace SCSS math/helpers.

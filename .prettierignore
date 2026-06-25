@@ -7,3 +7,10 @@ bun.lockb
 
 # Miscellaneous
 /static/
+
+# Documentation — not subject to code formatting
+*.md
+.claude/
+
+# Auto-generated — never format
+src/lib/types/openapi-types.ts

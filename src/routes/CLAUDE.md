@@ -22,8 +22,8 @@ the homepage and content pages render published material from the CMS.
 ## Expected public routes
 
 > ⚠️ **Provisional — not yet agreed.** The list below is a likely shape, **not** an approved page
-> inventory. Do not build a page until it's confirmed in `DECISIONS.md`. The actual set of pages,
-> and what each contains, is decided with the human (see `OPEN_QUESTIONS.md` → "Page inventory").
+> inventory. Do not build a page until it's confirmed and the blocking question removed from `OPEN_QUESTIONS.md`.
+> The actual set of pages and what each contains is decided with the human (see `OPEN_QUESTIONS.md` → "Page inventory").
 > Do not invent pages, sections, or content.
 
 These are conventions for *how* routes are structured once agreed, not a mandate to build them all:
@@ -74,9 +74,9 @@ Adjust naming to taste, but keep content detail on a `[slug]` route (slugs come 
 
 ## Auth-aware UI
 
-- Header shows login/register when `!$page.data.user`, and account/sign-out when signed in.
+- Header shows login/register when `!page.data.user`, and account/sign-out when signed in.
 - Staff (`admin`/`author`/`editor`) see an entry link to `/admin`; plain `user` does not.
-- These are UI hints from `$page.data.user` — the real gate is in `/admin`'s server guard.
+- These are UI hints from `page.data.user` (`import { page } from '$app/state'`) — the real gate is in `/admin`'s server guard.
 
 ---
 

@@ -16,8 +16,8 @@ Concretely:
 - ✅ Building the *mechanism* agreed on (e.g. "a blog list page") is fine; inventing its *contents
   and sub-sections* without agreement is not.
 
-The page inventory and per-page content live in `OPEN_QUESTIONS.md` until resolved, then move to
-`DECISIONS.md`. Build only what `DECISIONS.md` / agreed scope covers.
+The page inventory and per-page content live in `OPEN_QUESTIONS.md` until resolved. Build only
+what has been agreed and is reflected in `STATE.md`.
 
 ---
 
@@ -39,15 +39,30 @@ add detail for their area:
 Claude Code reads every `CLAUDE.md` from the working file up to the root, so you automatically
 have the relevant context for wherever you are working.
 
+---
+
+## Session workflow — follow this on every "next step" request
+
+1. Read `STATE.md` → find the earliest ⬜ step in the earliest unblocked phase.
+2. If the step is ⛔ → open `OPEN_QUESTIONS.md`, surface the blocking question to the human,
+   and wait for an answer before doing anything.
+3. Once unblocked (or already ⬜) → implement the step.
+4. If answering a question introduced a new rule or fact, record it in the relevant `CLAUDE.md`
+   file. (Pure implementation steps don't require a `CLAUDE.md` update.)
+5. Ask: "Step done — mark it complete?"
+6. Human confirms → mark the step ✅ in `STATE.md`. If a question was answered to unblock
+   this step, remove that question from `OPEN_QUESTIONS.md`.
+
+---
+
 ### Working docs (read/update, not always-on instructions)
 
 These are **reference and tracking** files — consult them when relevant, keep them current:
 
-- `STATE.md` — current build progress. **Update it** as you start/finish work.
-- `OPEN_QUESTIONS.md` — unresolved decisions needing a human answer. **Check before building** in
+- `STATE.md` — phased roadmap + open questions. **Read at the start of every session** to find
+  the next step and check for blockers.
+- `OPEN_QUESTIONS.md` — questions that block specific build steps. **Check before building** in
   an affected area; **add to it** instead of guessing when you hit an unknown.
-- `DECISIONS.md` — log of settled choices and why. Don't re-litigate these; supersede with a new
-  entry if something genuinely changes.
 
 ---
 
@@ -56,9 +71,9 @@ These are **reference and tracking** files — consult them when relevant, keep 
 | Layer | Choice |
 |---|---|
 | Framework | SvelteKit (SSR-first) |
-| Styling | Plain CSS / SCSS with Svelte scoped styles. **No utility framework.** |
+| Styling | **Plain native CSS only.** No SCSS, no Sass, no utility framework. Native nesting + CSS custom properties. |
 | API client | `openapi-fetch`, typed against `src/lib/types/openapi-types.ts` |
-| Auth | JWT in **HttpOnly cookies**, resolved server-side in `hooks.server.ts` |
+| Auth | JWT — Bearer token in SvelteKit-managed HttpOnly cookies. See Auth rules below. |
 | Animations | **Svelte-native only**: `transition:`, `animate:`, `tweened`, `spring`. No GSAP/Motion One/Framer. |
 | Theming | CSS custom properties + `data-theme` attribute. See `DESIGN_SYSTEM.md`. |
 | Package manager | **pnpm** |
@@ -117,22 +132,29 @@ When the company name/brand is finalized, set the env vars — no code changes n
 
 ## Auth rules (critical — read carefully)
 
-Tokens live in **HttpOnly cookies** set by the NestJS backend. They are never accessible to
-client-side JavaScript. The flow:
+**Token mechanics:** `POST /auth/sign-in` returns `{ accessToken, refreshToken }` in the
+response body **and** sets a `refreshToken` HttpOnly cookie scoped to `/auth/refresh-tokens` on
+the backend. SvelteKit's login action reads the body and stores **both** tokens as its own
+HttpOnly cookies (`access_token` 1 h, `refresh_token` 24 h). Tokens are never in JS-readable
+storage.
 
-1. `hooks.server.ts` reads the auth cookie on every request.
-2. It validates / refreshes the token against the backend and populates `event.locals.user`.
-3. Server `load` functions read the user from `locals.user` (never a client store).
-4. The root `+layout.server.ts` exposes the user through `load` → it appears in `$page.data`.
-5. Components read auth state from `$page.data` — these are **UI hints only**.
+The flow on every request:
+
+1. `hooks.server.ts` reads the `access_token` cookie and calls `GET /users/me` with
+   `Authorization: Bearer <token>` to validate and resolve the user.
+2. On `401`, it reads `refresh_token`, POSTs `{ refreshToken }` to `/auth/refresh-tokens`,
+   stores the new pair as cookies, and retries.
+3. Resolved user → `event.locals.user`. Access token → `event.locals.accessToken`.
+4. `hooks.server.ts` also injects `data-theme` into the HTML via `transformPageChunk`.
+5. Root `+layout.server.ts` exposes `user` + `theme` → `page.data` (UI hints only; access via `import { page } from '$app/state'`).
+6. Server `load` functions call `serverApi(fetch, locals.accessToken)` for authenticated requests.
 
 Rules:
 
-- **Server-side** `openapi-fetch` calls forward the cookie manually via SvelteKit's `fetch`.
-- **Client-side** `openapi-fetch` calls must use `credentials: 'include'` so the cookie is sent.
 - Never store tokens in `localStorage`, `sessionStorage`, or any JS-readable location.
 - Token refresh happens in `hooks.server.ts` **before** any `load` runs.
-- Access control lives in server `load` functions, **never** in component logic.
+- Access control lives in server `load` / action functions, **never** in component logic.
+- `locals.accessToken` is server-only — it is never serialised into `page.data`.
 
 Details and code in `src/CLAUDE.md`.
 
@@ -164,23 +186,27 @@ never be the sole gate on an action.
 
 ```
 src/
-  app.html                  # contains the no-flash theme inline script (see DESIGN_SYSTEM.md)
-  hooks.server.ts           # auth resolution + theme cookie reading
+  app.html                  # no-flash inline theme script (see DESIGN_SYSTEM.md)
+  app.d.ts                  # App.Locals + App.PageData types
+  hooks.server.ts           # auth resolution + token refresh + data-theme injection
   lib/
-    api/client.ts           # the openapi-fetch typed client
+    api/client.ts           # openapi-fetch typed client (api + serverApi)
     config/site.ts          # SITE_CONFIG branding source of truth
     components/             # shared components (PascalCase.svelte)
-    stores/                # Svelte stores (camelCase.ts)
-    styles/                # SCSS: tokens.css, _mixins.scss, global.scss
-    types/openapi-types.ts # AUTO-GENERATED — do not edit
-    utils/                 # helpers (camelCase.ts)
+    state/                  # shared helpers and reactive modules (plain .ts for pure utils; .svelte.ts for runes)
+    styles/
+      tokens.css            # primitives + semantic + non-color tokens
+      global.css            # base reset, imports tokens.css
+    types/openapi-types.ts  # AUTO-GENERATED — do not edit
+    utils/                  # helpers (camelCase.ts)
   routes/
-    +layout.server.ts       # exposes user + theme to $page.data
-    admin/                 # CMS panel (own CLAUDE.md)
+    +layout.server.ts       # exposes user + theme to page.data
+    +layout.svelte          # imports global.css, mounts matchMedia listener
+    admin/                  # CMS panel (own CLAUDE.md)
 ```
 
 Naming: components `PascalCase.svelte`; routes per SvelteKit convention (`+page.svelte`,
-`+page.server.ts`, etc.); utilities and stores `camelCase.ts`.
+`+page.server.ts`, etc.); utilities `camelCase.ts`.
 
 ---
 
@@ -188,27 +214,8 @@ Naming: components `PascalCase.svelte`; routes per SvelteKit convention (`+page.
 
 **WE ALWAYS USE SVELTE 5 SYNTAX AND THE SVELTE 5 WAY OF CODING.**
 
-- ✅ Props: `let { foo, children } = $props();`
-- ✅ Reactive state: `let count = $state(0);`
-- ✅ Derived values: `let double = $derived(count * 2);`
-- ✅ Side effects: `$effect(() => { … });`
-- ✅ Event handlers: `onclick={handler}` (not `on:click`)
-- ✅ Render children: `{@render children()}`
-- ✅ `import { page } from '$app/state';` (not `$app/stores`)
-- ✅ Snippets over slots: `{#snippet name()}…{/snippet}` + `{@render name()}`, pass snippets as props
-- ✅ Pass callbacks as props, not events: `let { onsave } = $props();` then `onsave?.(data)`
-- ✅ Bindable props: `let { value = $bindable() } = $props();`
-- ✅ Reactive deep state: `$state()` objects/arrays are deeply reactive — mutate directly (`arr.push()`, `obj.x = 1`), don't reassign for reactivity
-- ✅ Untrack when needed: `untrack()` from `'svelte'` to read without subscribing
-- ✅ Shared logic: extract reactive logic into `.svelte.js` / `.svelte.ts` files using runes, not stores
-- ✅ Class-based state with runes (`$state`/`$derived` as class fields) instead of writable stores
-- ✅ `$derived.by(() => {…})` for multi-statement derivations
-- ✅ `$effect.pre()` for pre-DOM-update effects (replaces `beforeUpdate`)
-- ✅ `$props.id()` for unique IDs
-- ✅ Component lifecycle: prefer `$effect` for mount/cleanup (return a teardown fn); `onMount` only for genuinely mount-only browser work
-- ✅ Type props with interfaces: `interface Props { foo: string; children?: Snippet }` + `let { foo, children }: Props = $props();`
-- ❌ Never use: `writable`/`readable`/`derived` from `svelte/store` (use runes), `beforeUpdate`/`afterUpdate`, `$$props`/`$$restProps` (use `let { ...rest } = $props()`), `$$slots`, `createEventDispatcher`, `<svelte:component>` (components are dynamic by default — render the variable directly)
-- ❌ Never use: `export let`, `$:`, `<slot />`, `on:event`, `createEventDispatcher`
+Full reference: `src/CLAUDE.md` → "Svelte 5 — required throughout" (conversion table, debugging rules, self-check).
+Mechanical enforcement: `pnpm lint && pnpm check` must pass before any Svelte work is done.
 
 ---
 
@@ -220,6 +227,6 @@ Naming: components `PascalCase.svelte`; routes per SvelteKit convention (`+page.
 - ❌ Do not use raw `fetch` for the API — always use the typed client in `src/lib/api/client.ts`.
 - ❌ Do not put access-control role checks in `.svelte` component logic.
 - ❌ Do not edit `src/lib/types/openapi-types.ts` — it is generated from the backend.
-- ❌ Do not use raw hex colors or SCSS color variables in components — use semantic CSS tokens (see `DESIGN_SYSTEM.md`).
+- ❌ Do not use raw hex colors or CSS primitive tokens (`--slate-500`) in components — use semantic tokens (`--color-text`, `--color-primary`, etc.). See `DESIGN_SYSTEM.md`.
 - ❌ Do not install a UI component library (Tailwind, Skeleton, etc.) without discussing first.
 - ❌ Do not use Svelte 4 syntax — this project is Svelte 5, runes mode enforced globally.
