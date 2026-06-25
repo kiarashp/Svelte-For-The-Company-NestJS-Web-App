@@ -55,9 +55,11 @@ export const actions: Actions = {
 			return fail(res.status >= 500 ? 503 : 400, { message: 'Sign-in failed. Please try again.' });
 		}
 
+		// Backend wraps every success response in { apiVersion, data } via DataResponseInterceptor.
 		let tokens: { accessToken: string; refreshToken: string };
 		try {
-			tokens = await res.json();
+			const body = await res.json();
+			tokens = body.data;
 		} catch {
 			return fail(502, { message: 'Unexpected response from server.' });
 		}

@@ -72,7 +72,9 @@ async function doRefresh(
 		throw new Error(`POST /auth/refresh-tokens returned ${res.status}`);
 	}
 
-	return (await res.json()) as { accessToken: string; refreshToken: string };
+	// Backend wraps every success response in { apiVersion, data } via DataResponseInterceptor.
+	const body = await res.json();
+	return body.data as { accessToken: string; refreshToken: string };
 }
 
 /**

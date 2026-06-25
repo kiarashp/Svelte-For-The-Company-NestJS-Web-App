@@ -99,8 +99,9 @@ Runs on every request, before any `load`:
 **openapi-types known limitations for auth endpoints:**
 - `GET /users/me` — response typed as `content?: never` (generator bug). Parse `res.json()` manually and cast to `NonNullable<App.Locals['user']>`.
 - `POST /auth/refresh-tokens` — `RefreshTokenDto` is `Record<string, never>` (generator bug). Build the request body `{ refreshToken }` manually instead of relying on the typed client.
+- `POST /auth/sign-in` — returns `401` for both wrong credentials AND unverified email. Distinguish them by parsing the body: unverified contains `"verify"` in `body.message`; wrong credentials says `"Invalid credentials"`. The `SignInDto` schema is also `Record<string, never>` (generator bug) — send `{ email, password }` manually.
 
-These limitations only affect `hooks.server.ts`. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
+These limitations only affect `hooks.server.ts` and the login action. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
 
 ```ts
 // app.d.ts — canonical App.Locals['user'] shape
