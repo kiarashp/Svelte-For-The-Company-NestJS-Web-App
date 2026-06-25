@@ -3,7 +3,7 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-06-27_
+_Last updated: 2026-06-28_
 
 ---
 
@@ -27,7 +27,7 @@ _Last updated: 2026-06-27_
 | 1 | **Remove Tailwind** | ✅ | root CLAUDE.md → stack + do-not list |
 | 2 | **Design tokens** | ✅ | DESIGN_SYSTEM.md → `tokens.css` (primitives + semantic + non-color) |
 | 3 | **`app.html`** | ✅ | DESIGN_SYSTEM.md → inline no-flash script |
-| 4 | **Types (`app.d.ts`)** | ⬜ | src/CLAUDE.md → `app.d.ts` block |
+| 4 | **Types (`app.d.ts`)** | ✅ | src/CLAUDE.md → `app.d.ts` block |
 | 5 | **API client** | ⬜ | src/CLAUDE.md → `client.ts` block |
 | 6 | **Branding config** | ⬜ | root CLAUDE.md → SITE_CONFIG section |
 | 7 | **Theme system** | ⬜ | DESIGN_SYSTEM.md → toggle + `theme.ts` cookie helpers |
