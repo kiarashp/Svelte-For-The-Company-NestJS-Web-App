@@ -3,7 +3,7 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-06-25_
+_Last updated: 2026-06-26_
 
 ---
 
@@ -43,8 +43,8 @@ _Last updated: 2026-06-25_
 
 | # | Step | Status | Notes |
 |---|---|:--:|---|
-| A1 | Login route + action | ⬜ | `POST /auth/sign-in` → set HttpOnly cookies |
-| A2 | Sign-out route | ⬜ | `POST /auth/sign-out` → clear cookies |
+| A1 | Login route + action | ✅ | `POST /auth/sign-in` → set HttpOnly cookies |
+| A2 | Sign-out route | ✅ | `POST /auth/sign-out` → clear cookies |
 | A3 | Register route + action | ⬜ | `POST /users` — public, triggers email verification |
 | A4 | Google OAuth | ⬜ | `/google-authentication` |
 | A5 | Email verification UI | ⬜ | `GET /auth/verify-email` + resend endpoint |

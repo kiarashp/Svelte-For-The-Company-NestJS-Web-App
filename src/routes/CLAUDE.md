@@ -92,9 +92,28 @@ This is where the "cool animations" focus lives. Svelte-native only (per `src/CL
 
 ---
 
+## Internal navigation links
+
+Always use `resolve()` from `$app/paths` for `<a href>` values that point to internal routes.
+The `svelte/no-navigation-without-resolve` ESLint rule (enabled in recommended config) enforces
+this so links work correctly regardless of the app's `base` path setting.
+
+```svelte
+<script lang="ts">
+  import { resolve } from '$app/paths';
+</script>
+
+<a href={resolve('/login')}>Sign in</a>
+```
+
+Plain string literals like `href="/login"` will fail the lint gate.
+
+---
+
 ## Don'ts (public-specific)
 
 - ❌ Don't fetch content client-side for primary page content — SSR it.
 - ❌ Don't render non-published content publicly.
 - ❌ Don't `{@html}` untrusted content without sanitizing.
 - ❌ Don't hardcode brand strings — use `SITE_CONFIG`.
+- ❌ Don't use plain string literals for internal `<a href>` — wrap with `resolve()` from `$app/paths`.
