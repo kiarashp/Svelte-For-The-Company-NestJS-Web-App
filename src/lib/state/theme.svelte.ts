@@ -28,6 +28,15 @@ export function getResolved(): ResolvedTheme {
 	return resolveTheme(preference);
 }
 
+/**
+ * Called once from +layout.svelte with page.data.theme (the server-resolved preference).
+ * Syncs the server-known value into module state so SSR and client agree from the very
+ * first render — prevents the 'system' flash on hydration when an explicit preference is set.
+ */
+export function initPreference(serverPref: ThemePreference): void {
+	preference = serverPref;
+}
+
 export function setPreference(pref: ThemePreference): void {
 	preference = pref;
 	document.cookie = `${COOKIE}=${pref}; path=/; max-age=${MAX_AGE}; samesite=lax`;
