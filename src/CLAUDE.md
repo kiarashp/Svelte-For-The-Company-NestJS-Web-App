@@ -107,8 +107,10 @@ Runs on every request, before any `load`:
 - `POST /auth/refresh-tokens` — response is `content?: never`; parse tokens from `res.json()` manually. (`RefreshTokenDto` is now correctly typed with `refreshToken?: string`.)
 - `POST /auth/sign-in` — returns `401` for both wrong credentials AND unverified email. Distinguish them by parsing the body: unverified contains `"verify"` in `body.message`; wrong credentials says `"Invalid credentials"`. Response is `content?: never`; parse tokens from `res.json()` manually. (`SignInDto` is now correctly typed with `email` and `password` fields.)
 - `POST /google-authentication` — response is `content?: never`; parse tokens from `res.json()` manually. (`GoogleTokenDto` is correctly typed with `token: string`.)
+- `GET /auth/verify-email` — response is `content?: never`; check `res.ok` to determine success. Token is passed as a query param (`?token=`).
+- `POST /auth/resend-verification` — response is `content?: never`; check `res.ok`. Uses `ResendVerificationDto` (`{ email: string }`). Return a generic success message regardless of whether the email exists to avoid account enumeration.
 
-These limitations only affect `hooks.server.ts` and the login action. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
+These limitations only affect `hooks.server.ts` and the auth route actions. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
 
 ```ts
 // app.d.ts — canonical App.Locals['user'] shape
