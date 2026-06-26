@@ -21,8 +21,6 @@ export const actions: Actions = {
 			return fail(400, { googleError: 'No Google credential received.' });
 		}
 
-		console.log('[google action] token sent to backend:', token);
-
 		let res: Response;
 		try {
 			// Raw fetch — GoogleAuthenticationController response is typed as content?: never
@@ -43,7 +41,7 @@ export const actions: Actions = {
 				const errBody = await res.json();
 				const msg: string = errBody?.message ?? '';
 				// 409 = email already registered as a local account (backend's ConflictException).
-			if (res.status === 409 || msg.toLowerCase().includes('already registered')) {
+				if (res.status === 409 || msg.toLowerCase().includes('already registered')) {
 					errorMessage =
 						'This email is already registered with a password. Please sign in with your email and password instead.';
 				}

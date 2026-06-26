@@ -96,6 +96,12 @@ Runs on every request, before any `load`:
 4. Read `theme` cookie → `event.locals.theme`.
 5. Inject `data-theme` onto `<html>` via `transformPageChunk` (SSR zero-flash for explicit `light`/`dark`; skip for `system` — the inline matchMedia script in `app.html` handles that).
 
+**Google Identity Services (GIS) integration pattern:**
+- Load the SDK dynamically in `onMount` via `document.createElement('script')` + `script.onload` — no polling, no `<svelte:head>` script block.
+- In the GIS `callback`, call an `async function` that POSTs the credential directly with `fetch('?/google', { method: 'POST', body: formData })` → `deserialize` → `applyAction`. Never bridge the credential through a hidden DOM input (proxy timing issues cause the token to arrive empty).
+- `POST /google-authentication` returns **409 Conflict** when the email already exists as a local account. Parse `res.status === 409` in the server action to show a specific message instead of the generic error.
+- GIS warns about `initialize()` being called multiple times on HMR reloads. Guard with `if (window.google?.accounts?.id) return;` inside `script.onload` if it becomes noisy.
+
 **openapi-types known limitations for auth endpoints:**
 - `GET /users/me` — response typed as `content?: never` (generator bug). Parse `res.json()` manually and cast to `NonNullable<App.Locals['user']>`.
 - `POST /auth/refresh-tokens` — response is `content?: never`; parse tokens from `res.json()` manually. (`RefreshTokenDto` is now correctly typed with `refreshToken?: string`.)

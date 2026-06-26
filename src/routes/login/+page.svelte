@@ -25,27 +25,17 @@
 		googleLoading = true;
 		googleError = null;
 
-		console.log('[sendCredential] credential length:', credential?.length);
-
 		const body = new FormData();
 		body.set('token', credential);
-		console.log('[sendCredential] FormData token:', body.get('token')?.toString().slice(0, 40));
 
 		const res = await fetch('?/google', { method: 'POST', body });
-		console.log('[sendCredential] response status:', res.status);
-
-		const text = await res.text();
-		console.log('[sendCredential] raw response text (first 200):', text.slice(0, 200));
-
-		const result = deserialize(text);
-		console.log('[sendCredential] deserialized result type:', result.type);
+		const result = deserialize(await res.text());
 
 		if (result.type === 'redirect') {
 			// Invalidate stale load data so the new session is visible after navigation.
 			await invalidateAll();
 			await applyAction(result);
 		} else if (result.type === 'failure') {
-			console.log('[sendCredential] failure data:', result.data);
 			googleError = (result.data?.googleError as string) ?? 'Sign-in failed.';
 			googleLoading = false;
 		} else {

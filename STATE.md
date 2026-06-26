@@ -46,7 +46,7 @@ _Last updated: 2026-06-26_
 | A1 | Login route + action | ✅ | `POST /auth/sign-in` → set HttpOnly cookies |
 | A2 | Sign-out route | ✅ | `POST /auth/sign-out` → clear cookies |
 | A3 | Register route + action | ✅ | `POST /users` — public, triggers email verification |
-| A4 | Google OAuth | ⬜ | `/google-authentication` |
+| A4 | Google OAuth | ✅ | `POST /google-authentication` → GIS SDK + fetch/deserialize/applyAction; 409 = existing local account |
 | A5 | Email verification UI | ⬜ | `GET /auth/verify-email` + resend endpoint |
 | A6 | Password reset UI | ⬜ | forgot / reset / change-password flow |
 
