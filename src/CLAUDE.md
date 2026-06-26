@@ -98,8 +98,9 @@ Runs on every request, before any `load`:
 
 **openapi-types known limitations for auth endpoints:**
 - `GET /users/me` — response typed as `content?: never` (generator bug). Parse `res.json()` manually and cast to `NonNullable<App.Locals['user']>`.
-- `POST /auth/refresh-tokens` — `RefreshTokenDto` is `Record<string, never>` (generator bug). Build the request body `{ refreshToken }` manually instead of relying on the typed client.
-- `POST /auth/sign-in` — returns `401` for both wrong credentials AND unverified email. Distinguish them by parsing the body: unverified contains `"verify"` in `body.message`; wrong credentials says `"Invalid credentials"`. The `SignInDto` schema is also `Record<string, never>` (generator bug) — send `{ email, password }` manually.
+- `POST /auth/refresh-tokens` — response is `content?: never`; parse tokens from `res.json()` manually. (`RefreshTokenDto` is now correctly typed with `refreshToken?: string`.)
+- `POST /auth/sign-in` — returns `401` for both wrong credentials AND unverified email. Distinguish them by parsing the body: unverified contains `"verify"` in `body.message`; wrong credentials says `"Invalid credentials"`. Response is `content?: never`; parse tokens from `res.json()` manually. (`SignInDto` is now correctly typed with `email` and `password` fields.)
+- `POST /google-authentication` — response is `content?: never`; parse tokens from `res.json()` manually. (`GoogleTokenDto` is correctly typed with `token: string`.)
 
 These limitations only affect `hooks.server.ts` and the login action. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
 
@@ -308,6 +309,32 @@ config already turns off `prefer-const` inside `.svelte` files.
 **Guiding principles:**
 1. Runes everywhere — any reactivity (props, state, derived, effects, shared modules) uses runes. If you reach for a store, stop and use `$state` in a `.svelte.ts` module instead.
 2. Data flows down via props, up via callback props. No event dispatching, no two-way binding unless `$bindable` is explicitly intended.
+
+---
+
+## SvelteKit form actions
+
+- When a `+page.server.ts` has **any named action**, the `default` action is **forbidden** — SvelteKit will throw at runtime. Give every action an explicit name (`login`, `google`, etc.) and point forms at `action="?/name"`.
+- Consequence: the email/password login form must use `action="?/login"`, not the bare `method="POST"` that implies `default`.
+
+### Form submission method — critical
+
+`use:enhance` intercepts the **`submit` event**. Only these two paths fire it:
+
+| Method | Fires `submit`? | `use:enhance` works? |
+|---|:--:|:--:|
+| User clicks `<button type="submit">` | ✅ | ✅ |
+| `form.requestSubmit()` | ✅ | ✅ |
+| `form.submit()` | ❌ | ❌ — full-page POST, bypasses everything |
+
+**Never call `form.submit()`.** It skips the `submit` event entirely, so `use:enhance` is never invoked — the browser does a raw full-page navigation, `fail()` handling and client-side redirects don't work, and the page reloads.
+
+**When JavaScript (not a button) must trigger submission** (e.g. a third-party SDK callback like Google Identity Services, Stripe, etc.), choose one of:
+
+1. `form.requestSubmit()` — fires the `submit` event; `use:enhance` intercepts it normally.
+2. Skip the form entirely: `fetch('?/action', { method: 'POST', body: formData })` → `deserialize()` → `applyAction()`. This is the right choice when the credential/payload comes from a JS callback and you want to avoid bridging it through a DOM input.
+
+Avoid hybrid patterns (attaching `use:enhance` to a form but submitting with `form.submit()`) — they add complexity while gaining nothing.
 
 ---
 

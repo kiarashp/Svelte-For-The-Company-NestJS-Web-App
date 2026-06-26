@@ -88,6 +88,7 @@ before reaching for `$env` — most branding values already have defaults there.
 
 ```
 PUBLIC_API_URL=http://localhost:3000     # NestJS backend base URL (required)
+PUBLIC_GOOGLE_CLIENT_ID=                  # Google OAuth client ID — leave empty to disable the button
 PUBLIC_SITE_NAME=                         # overrides SITE_CONFIG.name
 PUBLIC_SITE_TAGLINE=                      # overrides SITE_CONFIG.tagline
 PUBLIC_SITE_LOGO_URL=                     # overrides SITE_CONFIG.logoUrl

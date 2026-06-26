@@ -1,4 +1,19 @@
 declare global {
+	// Minimal ambient type for the Google Identity Services script loaded in the login page.
+	interface Window {
+		google?: {
+			accounts: {
+				id: {
+					initialize: (config: {
+						client_id: string;
+						callback: (response: { credential: string }) => void;
+					}) => void;
+					prompt: () => void;
+				};
+			};
+		};
+	}
+
 	namespace App {
 		interface Locals {
 			user: {

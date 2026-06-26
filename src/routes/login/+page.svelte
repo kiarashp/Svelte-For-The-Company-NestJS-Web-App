@@ -1,5 +1,8 @@
 <script lang="ts">
-	import { enhance } from '$app/forms';
+	import { onMount } from 'svelte';
+	import { enhance, applyAction, deserialize } from '$app/forms';
+	import { invalidateAll } from '$app/navigation';
+	import { PUBLIC_GOOGLE_CLIENT_ID } from '$env/static/public';
 	import type { ActionData } from './$types';
 
 	interface Props {
@@ -8,6 +11,69 @@
 	let { form }: Props = $props();
 
 	let loading = $state(false);
+
+	// Google Identity Services — only active when a client ID is configured.
+	const googleClientId = PUBLIC_GOOGLE_CLIENT_ID;
+	let googleLoading = $state(false);
+	// Local error for the Google path — not piped through the form action round-trip.
+	let googleError = $state<string | null>(null);
+
+	// Send the Google ID token directly to the ?/google action via fetch + applyAction.
+	// GIS delivers the credential in a JS callback, so we skip the form DOM entirely —
+	// bridging it through a hidden input risks the value not being flushed before submit.
+	async function sendCredential(credential: string) {
+		googleLoading = true;
+		googleError = null;
+
+		console.log('[sendCredential] credential length:', credential?.length);
+
+		const body = new FormData();
+		body.set('token', credential);
+		console.log('[sendCredential] FormData token:', body.get('token')?.toString().slice(0, 40));
+
+		const res = await fetch('?/google', { method: 'POST', body });
+		console.log('[sendCredential] response status:', res.status);
+
+		const text = await res.text();
+		console.log('[sendCredential] raw response text (first 200):', text.slice(0, 200));
+
+		const result = deserialize(text);
+		console.log('[sendCredential] deserialized result type:', result.type);
+
+		if (result.type === 'redirect') {
+			// Invalidate stale load data so the new session is visible after navigation.
+			await invalidateAll();
+			await applyAction(result);
+		} else if (result.type === 'failure') {
+			console.log('[sendCredential] failure data:', result.data);
+			googleError = (result.data?.googleError as string) ?? 'Sign-in failed.';
+			googleLoading = false;
+		} else {
+			await applyAction(result);
+			googleLoading = false;
+		}
+	}
+
+	// onMount: GIS SDK only exists in the browser — strictly mount-only browser code.
+	// Inject the script dynamically so onload fires exactly when the SDK is ready — no polling.
+	onMount(() => {
+		if (!googleClientId) return;
+
+		const script = document.createElement('script');
+		script.src = 'https://accounts.google.com/gsi/client';
+		script.onload = () => {
+			window.google?.accounts.id.initialize({
+				client_id: googleClientId,
+				callback: ({ credential }) => {
+					if (credential) sendCredential(credential);
+				}
+			});
+		};
+		document.head.appendChild(script);
+
+		// Remove the script tag when the login page unmounts.
+		return () => script.remove();
+	});
 </script>
 
 <main class="login-page">
@@ -16,6 +82,7 @@
 
 		<form
 			method="POST"
+			action="?/login"
 			use:enhance={() => {
 				loading = true;
 				return async ({ update }) => {
@@ -51,6 +118,23 @@
 				{loading ? 'Signing in…' : 'Sign in'}
 			</button>
 		</form>
+
+		{#if googleClientId}
+			<div class="divider" aria-hidden="true"><span>or</span></div>
+
+			{#if googleError}
+				<p class="error" role="alert">{googleError}</p>
+			{/if}
+
+			<button
+				type="button"
+				class="google-btn"
+				disabled={googleLoading || loading}
+				onclick={() => window.google?.accounts.id.prompt()}
+			>
+				{googleLoading ? 'Signing in…' : 'Sign in with Google'}
+			</button>
+		{/if}
 	</div>
 </main>
 
@@ -160,6 +244,50 @@
 	}
 
 	button[type='submit']:disabled {
+		opacity: 0.6;
+		cursor: not-allowed;
+	}
+
+	.divider {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 1.25rem;
+		color: var(--color-text-muted);
+		font-size: 0.875rem;
+	}
+
+	.divider::before,
+	.divider::after {
+		content: '';
+		flex: 1;
+		border-top: 1px solid var(--color-border);
+	}
+
+	.google-btn {
+		margin-top: 1rem;
+		width: 100%;
+		padding: 0.625rem 1rem;
+		background: var(--color-surface);
+		color: var(--color-text);
+		border: 1px solid var(--color-border);
+		border-radius: 0.375rem;
+		font-size: 1rem;
+		font-weight: 500;
+		cursor: pointer;
+		transition: background-color 0.15s;
+	}
+
+	.google-btn:hover:not(:disabled) {
+		background: var(--color-surface-alt);
+	}
+
+	.google-btn:focus-visible {
+		outline: 2px solid var(--color-focus-ring);
+		outline-offset: 2px;
+	}
+
+	.google-btn:disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
 	}

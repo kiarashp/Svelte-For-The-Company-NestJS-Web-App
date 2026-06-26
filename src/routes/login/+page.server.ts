@@ -12,7 +12,75 @@ export const load: PageServerLoad = async ({ locals }) => {
 };
 
 export const actions: Actions = {
-	default: async ({ request, fetch, cookies }) => {
+	google: async ({ request, fetch, cookies }) => {
+		const data = await request.formData();
+		// 'token' matches GoogleTokenDto.token — the Google ID token from the GIS callback.
+		const token = String(data.get('token') ?? '').trim();
+
+		if (!token) {
+			return fail(400, { googleError: 'No Google credential received.' });
+		}
+
+		console.log('[google action] token sent to backend:', token);
+
+		let res: Response;
+		try {
+			// Raw fetch — GoogleAuthenticationController response is typed as content?: never
+			// (same generator limitation as sign-in). Parse tokens from the body manually.
+			res = await fetch(`${PUBLIC_API_URL}/google-authentication`, {
+				method: 'POST',
+				headers: { 'Content-Type': 'application/json' },
+				body: JSON.stringify({ token })
+			});
+		} catch {
+			return fail(503, { googleError: 'Could not reach the server. Please try again.' });
+		}
+
+		if (!res.ok) {
+			// Parse the body to give a specific message when the email is already a local account.
+			let errorMessage = 'Google sign-in failed. Please try again.';
+			try {
+				const errBody = await res.json();
+				const msg: string = errBody?.message ?? '';
+				// 409 = email already registered as a local account (backend's ConflictException).
+			if (res.status === 409 || msg.toLowerCase().includes('already registered')) {
+					errorMessage =
+						'This email is already registered with a password. Please sign in with your email and password instead.';
+				}
+			} catch {
+				// Ignore parse failures — fall through to the generic message.
+			}
+			return fail(res.status >= 500 ? 503 : 400, { googleError: errorMessage });
+		}
+
+		// Same DataResponseInterceptor envelope as /auth/sign-in: { data: { accessToken, refreshToken } }
+		let tokens: { accessToken: string; refreshToken: string };
+		try {
+			const body = await res.json();
+			tokens = body.data;
+		} catch {
+			return fail(502, { googleError: 'Unexpected response from server.' });
+		}
+
+		cookies.set(ACCESS_COOKIE, tokens.accessToken, {
+			httpOnly: true,
+			sameSite: 'lax',
+			path: '/',
+			maxAge: 3600 // 1 hour — matches backend JWT TTL
+		});
+		cookies.set(REFRESH_COOKIE, tokens.refreshToken, {
+			httpOnly: true,
+			sameSite: 'lax',
+			path: '/',
+			maxAge: 86400 // 24 hours — matches backend refresh TTL
+		});
+
+		redirect(302, '/');
+	},
+
+	// SvelteKit rule: when any named action exists, the 'default' action is forbidden.
+	// All actions in this file must have explicit names.
+	login: async ({ request, fetch, cookies }) => {
 		const data = await request.formData();
 		const email = String(data.get('email') ?? '').trim();
 		const password = String(data.get('password') ?? '');
