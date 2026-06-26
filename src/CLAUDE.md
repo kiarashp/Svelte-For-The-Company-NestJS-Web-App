@@ -109,6 +109,9 @@ Runs on every request, before any `load`:
 - `POST /google-authentication` — response is `content?: never`; parse tokens from `res.json()` manually. (`GoogleTokenDto` is correctly typed with `token: string`.)
 - `GET /auth/verify-email` — response is `content?: never`; check `res.ok` to determine success. Token is passed as a query param (`?token=`).
 - `POST /auth/resend-verification` — response is `content?: never`; check `res.ok`. Uses `ResendVerificationDto` (`{ email: string }`). Return a generic success message regardless of whether the email exists to avoid account enumeration.
+- `POST /auth/forgot-password` — response is `content?: never`; check `res.ok`. Always return `{ sent: true }` to the client regardless of result to avoid account enumeration.
+- `POST /auth/reset-password` — response is `content?: never`; check `res.ok`. Token comes from `?token=` in the email link; pass it through a hidden form field. Include `expired: boolean` in every `fail()` return so the ActionData union type stays consistent and `form.expired` is always readable.
+- `POST /auth/change-password` — response is `content?: never`; check `res.ok`. Authenticated endpoint — pass `Authorization: Bearer ${locals.accessToken}` manually (raw fetch, same reason as above). `403` means wrong current password.
 
 These limitations only affect `hooks.server.ts` and the auth route actions. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
 
