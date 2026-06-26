@@ -2,6 +2,7 @@
 	import { onMount } from 'svelte';
 	import { enhance, applyAction, deserialize } from '$app/forms';
 	import { invalidateAll } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { PUBLIC_GOOGLE_CLIENT_ID } from '$env/static/public';
 	import type { ActionData } from './$types';
 
@@ -85,6 +86,11 @@
 				<!-- warning colour when the issue is verification, not wrong credentials -->
 				<p class="error" class:warning={form.message?.includes('verify')} role="alert">
 					{form.message}
+					{#if form.message?.includes('verify')}
+						<!-- Inline link so the user can immediately request a new link. -->
+						<a href={resolve('/auth/verify-email')} class="verify-link">Resend verification email</a
+						>
+					{/if}
 				</p>
 			{/if}
 
@@ -175,6 +181,14 @@
 	.error.warning {
 		border-color: var(--color-warning);
 		color: var(--color-warning);
+	}
+
+	/* Sits inside the warning banner; inherits the amber color. */
+	.verify-link {
+		display: block;
+		margin-top: 0.375rem;
+		color: inherit;
+		font-weight: 500;
 	}
 
 	.field {
