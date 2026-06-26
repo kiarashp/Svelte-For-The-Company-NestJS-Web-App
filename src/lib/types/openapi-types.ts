@@ -541,7 +541,7 @@ export interface components {
             password: string;
         };
         CreateManyUsersDto: {
-            users: Record<string, never>[];
+            users: components["schemas"]["CreateUserDto"][];
         };
         PatchUserProfileDto: {
             /**
@@ -558,7 +558,7 @@ export interface components {
              * @description Short plain-text bio (max 500 chars)
              * @example I build things for the web.
              */
-            bio?: Record<string, never>;
+            bio?: string | null;
         };
         SelectAvatarDto: {
             /**
@@ -567,8 +567,32 @@ export interface components {
              */
             avatarOptionId: number;
         };
-        ChangeUserRoleDto: Record<string, never>;
-        PatchUserDto: Record<string, never>;
+        ChangeUserRoleDto: {
+            /** @enum {string} */
+            role: "user" | "editor" | "author" | "admin";
+        };
+        PatchUserDto: {
+            /**
+             * @description User first name
+             * @example Ichigo
+             */
+            firstName?: string;
+            /**
+             * @description User last name
+             * @example Kurosaki
+             */
+            lastName?: string;
+            /**
+             * @description User email
+             * @example ichigo@bleach.com
+             */
+            email?: string;
+            /**
+             * @description User password and must contain Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character
+             * @example qwer!@QWER123
+             */
+            password?: string;
+        };
         CreatePostMetaOptionsDto: {
             /**
              * @description The meta value is a JSON string
@@ -694,7 +718,9 @@ export interface components {
             /** @description The meta options for the post */
             metaOptions?: components["schemas"]["CreatePostMetaOptionsDto"];
         };
-        PostTagsDto: Record<string, never>;
+        PostTagsDto: {
+            tagIds: number[];
+        };
         CreateTagDto: {
             name: string;
             slug: string;
@@ -709,13 +735,36 @@ export interface components {
             schema?: string;
             featuredImage?: string;
         };
-        SignInDto: Record<string, never>;
-        RefreshTokenDto: Record<string, never>;
-        ResendVerificationDto: Record<string, never>;
-        ForgotPasswordDto: Record<string, never>;
-        ResetPasswordDto: Record<string, never>;
-        ChangePasswordDto: Record<string, never>;
-        GoogleTokenDto: Record<string, never>;
+        SignInDto: {
+            /** @example user@example.com */
+            email: string;
+            password: string;
+        };
+        RefreshTokenDto: {
+            /** @description Refresh token (mobile clients only — browser clients use the HttpOnly cookie) */
+            refreshToken?: string;
+        };
+        ResendVerificationDto: {
+            /** @example user@example.com */
+            email: string;
+        };
+        ForgotPasswordDto: {
+            /** @example user@example.com */
+            email: string;
+        };
+        ResetPasswordDto: {
+            /** @description Password reset token from the email link */
+            token: string;
+            newPassword: string;
+        };
+        ChangePasswordDto: {
+            currentPassword: string;
+            newPassword: string;
+        };
+        GoogleTokenDto: {
+            /** @description Google ID token obtained from the client-side Google Sign-In flow */
+            token: string;
+        };
         UpdateMetaOptionDto: {
             /**
              * @description The meta value is a JSON string
@@ -1643,7 +1692,10 @@ export interface operations {
     };
     AuthController_verifyEmail: {
         parameters: {
-            query?: never;
+            query: {
+                /** @description Email verification token from the verification email link */
+                token: string;
+            };
             header?: never;
             path?: never;
             cookie?: never;
