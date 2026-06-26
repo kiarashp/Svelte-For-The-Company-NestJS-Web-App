@@ -100,7 +100,10 @@
 			</label>
 
 			<label class="field">
-				<span class="label-text">Password</span>
+				<span class="field-header">
+					<span class="label-text">Password</span>
+					<a href={resolve('/auth/forgot-password')} class="forgot-link">Forgot password?</a>
+				</span>
 				<input
 					type="password"
 					name="password"
@@ -197,10 +200,33 @@
 		gap: 0.375rem;
 	}
 
+	/* Row that places the label and the forgot-password link on opposite ends. */
+	.field-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: baseline;
+	}
+
 	.label-text {
 		font-size: 0.875rem;
 		font-weight: 500;
 		color: var(--color-text-muted);
+	}
+
+	.forgot-link {
+		font-size: 0.8125rem;
+		color: var(--color-primary);
+		text-decoration: none;
+	}
+
+	.forgot-link:hover {
+		text-decoration: underline;
+	}
+
+	.forgot-link:focus-visible {
+		outline: 2px solid var(--color-focus-ring);
+		outline-offset: 2px;
+		border-radius: 2px;
 	}
 
 	input {
