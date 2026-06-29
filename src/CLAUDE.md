@@ -115,6 +115,32 @@ Runs on every request, before any `load`:
 
 These limitations only affect `hooks.server.ts` and the auth route actions. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
 
+**Product / product-type read responses are fully typed** (unlike the auth endpoints). Every
+response is wrapped in a `{ apiVersion?, data? }` envelope:
+
+- **Single reads** (and create / update / image upload) — `data` *is* the entity. With
+  openapi-fetch: `const { data } = await client.GET('/products/slug/{slug}', …)` → `data?.data` is
+  the `Product` (schema `components['schemas']['Product']`).
+- **Product lists** (`GET /products`, `GET /products/admin`) — **paginated**. `data` is
+  `{ data: Product[], meta, links }`: items at `data?.data?.data`, pagination at `data?.data?.meta`
+  (`itemsPerPage`, `totalItems`, `currentPage`, `totalPages`, `hasNextPage`, `hasPrevPage`). Send
+  `page` / `limit` as typed query params. (Paging UX is Q11 in `OPEN_QUESTIONS.md`.)
+- **Product-types list** (`GET /product-types`) — a **bare `ProductType[]`** at `data?.data` (not
+  paginated). `ProductType` carries `productCount` (published-product count, for the landing cards)
+  and an embedded `filterableFields` facet array.
+
+Two caveats remain:
+
+- **Write DTOs are mistyped.** `CreateProductDto` / `UpdateProductDto` type `description`, `sku`,
+  `imageUrl`, `images`, `specs` as `Record<string, never>`, and the product-type DTOs type
+  `filterableFields` the same way (a leftover generator artifact). Build the real payload
+  (`description: string`, `images: string[]`, `specs: object`, `filterableFields:
+  FilterableFieldDto[]`) and **cast** in the admin actions. Do **not** edit `openapi-types.ts`.
+- The `GET /products` **spec filter** query is bracket-nested (`specs[key]=v` for enum/string,
+  `specs[key][min]=…&specs[key][max]=…` for number ranges) and must be sent alongside a type context
+  (`typeSlug` or `productTypeId`). `openapi-fetch`'s default serializer won't produce this shape — a
+  small dedicated serializer util is needed (Phase 5 step in `STATE.md`).
+
 ```ts
 // app.d.ts — canonical App.Locals['user'] shape
 declare global {

@@ -24,7 +24,8 @@ what has been agreed and is reflected in `STATE.md`.
 ## What this project is
 
 A SvelteKit **company website with a built-in CMS**. The public-facing site displays content
-(posts, pages, stories, series) managed through an `/admin` panel. The backend is an existing
+(posts, pages, stories, series) and a **product catalog** (products grouped by product type, with
+type-specific filterable specs) managed through an `/admin` panel. The backend is an existing
 **NestJS API** with authentication and a 4-role system, consumed via `openapi-fetch` using
 auto-generated types.
 
@@ -211,6 +212,7 @@ src/
   routes/
     +layout.server.ts       # exposes user + theme to page.data
     +layout.svelte          # imports global.css, mounts matchMedia listener
+    products/               # public product catalog: type directory → per-type list → detail
     admin/                  # CMS panel (own CLAUDE.md)
 ```
 

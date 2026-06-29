@@ -514,6 +514,148 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/products": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List published products */
+        get: operations["ProductsController_findAll"];
+        put?: never;
+        /** Create a product (admin only) */
+        post: operations["ProductsController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/products/slug/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a published product by slug */
+        get: operations["ProductsController_findBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/products/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all products including drafts (admin only) */
+        get: operations["ProductsController_findAllAdmin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/products/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a published product by id */
+        get: operations["ProductsController_findOne"];
+        put?: never;
+        post?: never;
+        /** Soft-delete a product (admin only) */
+        delete: operations["ProductsController_remove"];
+        options?: never;
+        head?: never;
+        /** Update a product (admin only) */
+        patch: operations["ProductsController_update"];
+        trace?: never;
+    };
+    "/products/{id}/image": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload main product image (admin only) */
+        post: operations["ProductsController_uploadImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/product-types": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all product types */
+        get: operations["ProductTypesController_findAll"];
+        put?: never;
+        /** Create a product type (admin only) */
+        post: operations["ProductTypesController_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/product-types/slug/{slug}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a product type by slug */
+        get: operations["ProductTypesController_findBySlug"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/product-types/{id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a product type by id */
+        get: operations["ProductTypesController_findOne"];
+        put?: never;
+        post?: never;
+        /** Delete a product type (admin only) */
+        delete: operations["ProductTypesController_delete"];
+        options?: never;
+        head?: never;
+        /** Update a product type (admin only) */
+        patch: operations["ProductTypesController_update"];
+        trace?: never;
+    };
 }
 export type webhooks = Record<string, never>;
 export interface components {
@@ -782,6 +924,269 @@ export interface components {
             /** @example Hello, I wanted to reach out... */
             message: string;
         };
+        FilterableFieldDto: {
+            /**
+             * @description Key matching a product spec
+             * @example tempRange
+             */
+            key: string;
+            /**
+             * @description Label shown in the filter UI
+             * @example Temperature Range
+             */
+            label: string;
+            /**
+             * @description Renders a range for number, dropdown for enum, text for string
+             * @enum {string}
+             */
+            type: "number" | "enum" | "string";
+            /**
+             * @description Unit suffix for display
+             * @example °C
+             */
+            unit?: string;
+            /**
+             * @description Allowed values when type is enum
+             * @example [
+             *       "Inconel 600",
+             *       "Stainless 316"
+             *     ]
+             */
+            options?: string[];
+        };
+        ProductType: {
+            /** @example 1 */
+            id: number;
+            /** @example Thermocouple */
+            name: string;
+            /** @example thermocouple */
+            slug: string;
+            /** @description Filter facets the frontend renders for this type */
+            filterableFields?: components["schemas"]["FilterableFieldDto"][] | null;
+            /**
+             * @description Number of published products in this type
+             * @example 24
+             */
+            productCount?: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        Product: {
+            /** @example 1 */
+            id: number;
+            /** @example Type K Thermocouple */
+            name: string;
+            /** @example type-k-thermocouple */
+            slug: string;
+            /** @example TC-K-1260-IC */
+            sku?: string | null;
+            /** @example High-accuracy thermocouple for industrial use */
+            shortDescription: string;
+            description?: string | null;
+            imageUrl?: string | null;
+            images?: string[] | null;
+            /**
+             * @description Type-specific attribute values; keys match the type filterableFields
+             * @example {
+             *       "tempRange": 1260,
+             *       "sheathMaterial": "Inconel 600"
+             *     }
+             */
+            specs?: {
+                [key: string]: unknown;
+            } | null;
+            /** @example true */
+            isPublished: boolean;
+            productType: components["schemas"]["ProductType"];
+            /** @example 1 */
+            productTypeId: number;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt?: string | null;
+        };
+        CreateProductDto: {
+            /**
+             * @description Product display name
+             * @example Type K Thermocouple
+             */
+            name: string;
+            /**
+             * @description URL slug, unique across all products
+             * @example type-k-thermocouple
+             */
+            slug: string;
+            /**
+             * @description ID of the product type this product belongs to
+             * @example 1
+             */
+            productTypeId: number;
+            /**
+             * @description Short description for list cards and search results
+             * @example High-accuracy thermocouple for industrial use
+             */
+            shortDescription: string;
+            /** @description Full detail body shown on the product page */
+            description?: Record<string, never>;
+            /**
+             * @description Vendor or internal SKU code
+             * @example TC-K-1260-IC
+             */
+            sku?: Record<string, never>;
+            /**
+             * @description Main Cloudinary image URL
+             * @example https://res.cloudinary.com/demo/image/upload/v1/products/tc-k.jpg
+             */
+            imageUrl?: Record<string, never>;
+            /** @description Gallery of additional Cloudinary URLs */
+            images?: Record<string, never>;
+            /**
+             * @description Type-specific attribute values — keys must match the product type's filterableFields
+             * @example {
+             *       "tempRange": 1260,
+             *       "accuracy": 0.75,
+             *       "sheathMaterial": "Inconel 600"
+             *     }
+             */
+            specs?: Record<string, never>;
+            /**
+             * @description Publish the product immediately (defaults to false)
+             * @default false
+             */
+            isPublished: boolean;
+        };
+        UpdateProductDto: {
+            /**
+             * @description Product display name
+             * @example Type K Thermocouple
+             */
+            name?: string;
+            /**
+             * @description URL slug, unique across all products
+             * @example type-k-thermocouple
+             */
+            slug?: string;
+            /**
+             * @description ID of the product type this product belongs to
+             * @example 1
+             */
+            productTypeId?: number;
+            /**
+             * @description Short description for list cards and search results
+             * @example High-accuracy thermocouple for industrial use
+             */
+            shortDescription?: string;
+            /** @description Full detail body shown on the product page */
+            description?: Record<string, never>;
+            /**
+             * @description Vendor or internal SKU code
+             * @example TC-K-1260-IC
+             */
+            sku?: Record<string, never>;
+            /**
+             * @description Main Cloudinary image URL
+             * @example https://res.cloudinary.com/demo/image/upload/v1/products/tc-k.jpg
+             */
+            imageUrl?: Record<string, never>;
+            /** @description Gallery of additional Cloudinary URLs */
+            images?: Record<string, never>;
+            /**
+             * @description Type-specific attribute values — keys must match the product type's filterableFields
+             * @example {
+             *       "tempRange": 1260,
+             *       "accuracy": 0.75,
+             *       "sheathMaterial": "Inconel 600"
+             *     }
+             */
+            specs?: Record<string, never>;
+            /**
+             * @description Publish the product immediately (defaults to false)
+             * @default false
+             */
+            isPublished: boolean;
+        };
+        DeleteResultDto: {
+            /**
+             * @description Whether the record was deleted
+             * @example true
+             */
+            deleted: boolean;
+            /**
+             * @description ID of the deleted record
+             * @example 1
+             */
+            id: number;
+        };
+        CreateProductTypeDto: {
+            /**
+             * @description Human-readable product type name
+             * @example Thermocouple
+             */
+            name: string;
+            /**
+             * @description URL-safe slug, unique across types
+             * @example thermocouple
+             */
+            slug: string;
+            /**
+             * @description Filter facets shown in the product filter UI for this type
+             * @example [
+             *       {
+             *         "key": "tempRange",
+             *         "label": "Temperature Range",
+             *         "type": "number",
+             *         "unit": "°C"
+             *       },
+             *       {
+             *         "key": "sheathMaterial",
+             *         "label": "Sheath Material",
+             *         "type": "enum",
+             *         "options": [
+             *           "Inconel 600",
+             *           "Stainless 316"
+             *         ]
+             *       }
+             *     ]
+             */
+            filterableFields?: Record<string, never>;
+        };
+        UpdateProductTypeDto: {
+            /**
+             * @description Human-readable product type name
+             * @example Thermocouple
+             */
+            name?: string;
+            /**
+             * @description URL-safe slug, unique across types
+             * @example thermocouple
+             */
+            slug?: string;
+            /**
+             * @description Filter facets shown in the product filter UI for this type
+             * @example [
+             *       {
+             *         "key": "tempRange",
+             *         "label": "Temperature Range",
+             *         "type": "number",
+             *         "unit": "°C"
+             *       },
+             *       {
+             *         "key": "sheathMaterial",
+             *         "label": "Sheath Material",
+             *         "type": "enum",
+             *         "options": [
+             *           "Inconel 600",
+             *           "Stainless 316"
+             *         ]
+             *       }
+             *     ]
+             */
+            filterableFields?: Record<string, never>;
+        };
     };
     responses: never;
     parameters: never;
@@ -912,8 +1317,10 @@ export interface operations {
     UsersController_getAllUsers: {
         parameters: {
             query?: {
-                page?: number;
+                /** @description Number of items per page */
                 limit?: number;
+                /** @description Page number to return (1-based) */
+                page?: number;
             };
             header?: never;
             path?: never;
@@ -1216,7 +1623,12 @@ export interface operations {
     };
     AuditLogController_findAll: {
         parameters: {
-            query?: never;
+            query?: {
+                /** @description Number of items per page */
+                limit?: number;
+                /** @description Page number to return (1-based) */
+                page?: number;
+            };
             header?: never;
             path?: never;
             cookie?: never;
@@ -1236,6 +1648,10 @@ export interface operations {
             query?: {
                 /** @description Keyword search across title and content */
                 q?: string;
+                /** @description Number of items per page */
+                limit?: number;
+                /** @description Page number to return (1-based) */
+                page?: number;
             };
             header?: never;
             path?: never;
@@ -1297,6 +1713,10 @@ export interface operations {
             query?: {
                 /** @description Keyword search across title and content */
                 q?: string;
+                /** @description Number of items per page */
+                limit?: number;
+                /** @description Page number to return (1-based) */
+                page?: number;
             };
             header?: never;
             path?: never;
@@ -1890,6 +2310,489 @@ export interface operations {
         };
         responses: {
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_findAll: {
+        parameters: {
+            query?: {
+                /** @description Number of items per page */
+                limit?: number;
+                /** @description Page number to return (1-based) */
+                page?: number;
+                /** @description Filter by product type ID */
+                productTypeId?: number;
+                /** @description Filter by product type slug — alternative to productTypeId so a per-type page can load without first resolving the id. productTypeId wins if both are sent. */
+                typeSlug?: string;
+                /** @description Keyword search across product name and short description */
+                q?: string;
+                /** @description Sort order. newest (default) and oldest sort by creation date; name sorts A–Z. */
+                sort?: "newest" | "oldest" | "name";
+                /** @description Spec filters sent as bracket-nested params (parsed by the 'extended' query parser). Enum/string facets take an exact value; number facets take an exact value or a [min]/[max] range. Keys must match the type's filterableFields, so a type context (productTypeId or typeSlug) is required. Example: specs[sheathMaterial]=Inconel 600&specs[tempRange][min]=1000&specs[tempRange][max]=1600. */
+                specs?: {
+                    [key: string]: unknown;
+                };
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: {
+                            data?: components["schemas"]["Product"][];
+                            meta?: {
+                                itemsPerPage?: number;
+                                totalItems?: number;
+                                currentPage?: number;
+                                totalPages?: number;
+                                hasNextPage?: boolean;
+                                hasPrevPage?: boolean;
+                            };
+                            links?: {
+                                first?: string;
+                                last?: string;
+                                current?: string;
+                                next?: string;
+                                prev?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    ProductsController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProductDto"];
+            };
+        };
+        responses: {
+            /** @description Product created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Product"];
+                    };
+                };
+            };
+            /** @description Slug or SKU already in use */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_findBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Product"];
+                    };
+                };
+            };
+            /** @description Product not found or not published */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_findAllAdmin: {
+        parameters: {
+            query?: {
+                /** @description Number of items per page */
+                limit?: number;
+                /** @description Page number to return (1-based) */
+                page?: number;
+                /** @description Filter by product type ID */
+                productTypeId?: number;
+                /** @description Filter by product type slug — alternative to productTypeId so a per-type page can load without first resolving the id. productTypeId wins if both are sent. */
+                typeSlug?: string;
+                /** @description Keyword search across product name and short description */
+                q?: string;
+                /** @description Sort order. newest (default) and oldest sort by creation date; name sorts A–Z. */
+                sort?: "newest" | "oldest" | "name";
+                /** @description Spec filters sent as bracket-nested params (parsed by the 'extended' query parser). Enum/string facets take an exact value; number facets take an exact value or a [min]/[max] range. Keys must match the type's filterableFields, so a type context (productTypeId or typeSlug) is required. Example: specs[sheathMaterial]=Inconel 600&specs[tempRange][min]=1000&specs[tempRange][max]=1600. */
+                specs?: {
+                    [key: string]: unknown;
+                };
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: {
+                            data?: components["schemas"]["Product"][];
+                            meta?: {
+                                itemsPerPage?: number;
+                                totalItems?: number;
+                                currentPage?: number;
+                                totalPages?: number;
+                                hasNextPage?: boolean;
+                                hasPrevPage?: boolean;
+                            };
+                            links?: {
+                                first?: string;
+                                last?: string;
+                                current?: string;
+                                next?: string;
+                                prev?: string;
+                            };
+                        };
+                    };
+                };
+            };
+        };
+    };
+    ProductsController_findOne: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Product"];
+                    };
+                };
+            };
+            /** @description Product not found or not published */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_remove: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["DeleteResultDto"];
+                    };
+                };
+            };
+        };
+    };
+    ProductsController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Product"];
+                    };
+                };
+            };
+            /** @description Slug or SKU already in use */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_uploadImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Image uploaded; product returned with updated imageUrl */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Product"];
+                    };
+                };
+            };
+            /** @description Invalid file type or size */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductTypesController_findAll: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["ProductType"][];
+                    };
+                };
+            };
+        };
+    };
+    ProductTypesController_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CreateProductTypeDto"];
+            };
+        };
+        responses: {
+            /** @description Product type created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["ProductType"];
+                    };
+                };
+            };
+            /** @description Name or slug already in use */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductTypesController_findBySlug: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                slug: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["ProductType"];
+                    };
+                };
+            };
+            /** @description Product type not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductTypesController_findOne: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["ProductType"];
+                    };
+                };
+            };
+            /** @description Product type not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductTypesController_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["DeleteResultDto"];
+                    };
+                };
+            };
+            /** @description Products still reference this type */
+            409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductTypesController_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["UpdateProductTypeDto"];
+            };
+        };
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["ProductType"];
+                    };
+                };
+            };
+            /** @description Name or slug already in use */
+            409: {
                 headers: {
                     [name: string]: unknown;
                 };

@@ -96,6 +96,8 @@ relationship for that?
 → _Unblocks: Phase 3 → Post detail, Phase 4 → Post create / edit_
 
 ### Q11. Pagination UX
-`GET /posts` and `GET /users` are paginated (`page` / `limit`). Preference: numbered pages,
-load-more, or infinite scroll? Affects public blog list and admin tables.
-→ _Unblocks: Phase 3 → Blog list, Phase 4 → Post list / user list_
+`GET /posts`, `GET /users`, and the product lists (`GET /products`, `GET /products/admin`) are
+paginated (`page` / `limit`). Preference: numbered pages, load-more, or infinite scroll? Affects
+public blog list, public product lists, and admin tables. (Note: `GET /product-types` is a bare
+array — not paginated.)
+→ _Unblocks: Phase 3 → Blog list; Phase 4 → Post list / user list; Phase 5 → all-products list, per-type list; Phase 6 → admin product list_

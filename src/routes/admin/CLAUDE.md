@@ -45,8 +45,13 @@ Per-route guards then narrow further (e.g. user-management is admin-only).
 | Change user roles | ✅ | ❌ | ❌ | ❌ |
 | View audit logs | ✅ | ❌ | ❌ | ❌ |
 | Manage avatar options | ✅ | ❌ | ❌ | ❌ |
+| Create/edit/delete product | ✅ | ❌ | ❌ | ❌ |
+| Upload product image | ✅ | ❌ | ❌ | ❌ |
+| Create/edit/delete product type | ✅ | ❌ | ❌ | ❌ |
 
 Cells marked `?` are unverified from the types — confirm against the backend before relying on them.
+The product rows are **not** inferred: the OpenAPI descriptions state these endpoints are "admin only"
+explicitly, so authors/editors get no product write access.
 
 ### Ownership logic
 
@@ -90,6 +95,21 @@ Cells marked `?` are unverified from the types — confirm against the backend b
 ### Meta options
 - `GET /meta-options/{id}`, `PATCH /meta-options/{id}`, `DELETE /meta-options/{id}`
 
+### Products (writes admin-only; reads public; lists **are paginated**)
+- `GET /products` — published list; filters `productTypeId` | `typeSlug`, `q`, `sort` (`newest`/`oldest`/`name`), `specs[...]`; **paginated** (`page`/`limit`, `{ data, meta, links }` envelope)
+- `GET /products/admin` — full list **including drafts** (the admin product list source); same paginated envelope
+- `GET /products/slug/{slug}`, `GET /products/{id}` — single product
+- `POST /products` — create (admin); `409` on duplicate slug or SKU
+- `PATCH /products/{id}` — update (admin)
+- `DELETE /products/{id}` — soft-delete (admin)
+- `POST /products/{id}/image` — upload main image (admin), **multipart** — same handling as post images
+
+### Product types (writes admin-only; reads public; list is a **bare array**)
+- `GET /product-types` — **not paginated**: `data` is a plain `ProductType[]`. Each type carries `productCount` (published-product count) and its `filterableFields`.
+- `GET /product-types/slug/{slug}`, `GET /product-types/{id}` — single type
+- `POST /product-types`, `PATCH /product-types/{id}` — create / update (admin)
+- `DELETE /product-types/{id}` — delete (admin); `409` if products still reference the type
+
 ---
 
 ## Post model facts (from DTOs)
@@ -111,6 +131,37 @@ Cells marked `?` are unverified from the types — confirm against the backend b
 
 Map these to clear status badges and sensible default filters (e.g. author dashboard defaults to
 their drafts + review; admin sees all).
+
+---
+
+## Product model facts (from the typed schemas)
+
+- **Product**: `id`, `name`, `slug` (unique site-wide), `productTypeId`, `shortDescription`
+  (card/search text), `description` (**plain text** — render `white-space: pre-wrap`, no sanitize),
+  `sku`, `imageUrl` (main), `images[]` (gallery URLs), `specs` (JSONB), `isPublished`, timestamps,
+  `deletedAt?`. The **`productType` object is embedded** on every read — no extra fetch to show the
+  type on a product.
+- Draft vs published is a single boolean `isPublished` — there is no multi-stage post-style status
+  workflow. Admin list pulls `GET /products/admin` to see drafts; the public site never does.
+- **`specs` is keyed by the product type's `filterableFields`** — a product's spec keys must match
+  the facet `key`s defined on its type. Changing a product's type invalidates its existing specs.
+- **ProductType**: `id`, `name`, `slug`, `productCount` (published-product count, for landing
+  cards), `filterableFields[]` where each facet is
+  `{ key, label, type: 'number' | 'enum' | 'string', unit?, options?: string[] }`
+  (number → range, enum → dropdown, string → text).
+- **Write DTOs are mistyped.** `CreateProductDto`/`UpdateProductDto` type `description`, `sku`,
+  `imageUrl`, `images`, `specs` as `Record<string, never>`, and the product-type DTOs type
+  `filterableFields` the same way. Build the real payload in the action and **cast** — reads are
+  correct, only the request types are wrong. (See `src/CLAUDE.md`.)
+
+### Two admin builds specific to products
+
+- **Facet editor** (product-type create/edit): edit `filterableFields` as repeatable rows
+  (`key`, `label`, `type`, `unit?`, `options?`). This is what defines a type's filters and the spec
+  keys its products may use.
+- **Dynamic specs form** (product create/edit): after the type is chosen, render one input per
+  facet from that type's `filterableFields` (number input for `number`, select for `enum`, etc.) and
+  collect them into the `specs` object. Don't hardcode spec fields — derive them from the type.
 
 ---
 

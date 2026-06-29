@@ -3,7 +3,7 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-06-26_
+_Last updated: 2026-06-30_
 
 ---
 
@@ -90,3 +90,40 @@ _Last updated: 2026-06-26_
 | Meta-options | ⛔ | Q3 |
 | Full admin page inventory | ⛔ | Q-PAGES-7 |
 | Empty / error / loading states | ⛔ | Q-PAGES-8 |
+
+---
+
+## Phase 5 — Products (Public Site) `PARTIALLY UNBLOCKED`
+
+> Structure agreed (see `src/routes/CLAUDE.md`): `/products` is a product-type directory (cards use
+> `productCount`), `/products/all` is a filter-less sort+paginate list, each type has a filtered
+> list at `/products/[typeSlug]`, detail at `/products/[typeSlug]/[productSlug]`. Read schemas are
+> fully typed now, so only the paginated lists (Q11) and nav (Q-PAGES-3) remain blocked.
+
+| Step | Status | Blocked by |
+|---|:--:|---|
+| Spec-filter query serializer util (`specs[k]`, `[min]`/`[max]`) | ⬜ | — |
+| Products landing `/products` (type cards + `productCount`) | ⬜ | — |
+| `SpecFilters` component (renders facets → inputs) | ⬜ | — |
+| Product detail `/products/[typeSlug]/[productSlug]` (gallery, specs, description, related) | ⬜ | — |
+| All-products list `/products/all` (sort + pagination, no spec filters) | ⛔ | Q11 |
+| Per-type list `/products/[typeSlug]` (+ filters, sort, search, pagination) | ⛔ | Q11 |
+| Add Products to public nav | ⛔ | Q-PAGES-3 |
+
+---
+
+## Phase 6 — Products (Admin CMS) `PARTIALLY UNBLOCKED`
+
+> Product writes are admin-only (explicit in the OpenAPI text). Read schemas are typed; **write DTOs
+> are mistyped** (`Record<string, never>` on JSON fields) so create/edit actions build + cast the
+> payload. Only the paginated admin product list (Q11) remains blocked.
+
+| Step | Status | Blocked by |
+|---|:--:|---|
+| Admin product create/edit + dynamic specs form (cast write DTO) | ⬜ | — |
+| Admin product main-image upload (`POST /products/{id}/image`) | ⬜ | — (multipart pattern known) |
+| Admin product delete (soft) | ⬜ | — |
+| Admin product-type list (bare array) | ⬜ | — |
+| Admin product-type create/edit + `filterableFields` facet editor (cast write DTO) | ⬜ | — |
+| Admin product-type delete (handle 409 — still referenced) | ⬜ | — |
+| Admin product list (`GET /products/admin`, incl. drafts, paginated) | ⛔ | Q11 |

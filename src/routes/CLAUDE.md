@@ -45,10 +45,32 @@ src/routes/
   contact/
     +page.server.ts          # form action → POST /contact
     +page.svelte
+  products/
+    +page.server.ts          # GET /product-types → directory of type cards (landing; uses productCount)
+    +page.svelte
+    all/
+      +page.server.ts        # GET /products (all types) — sort + pagination only, NO spec filters
+      +page.svelte
+    [typeSlug]/
+      +page.server.ts        # GET /product-types/slug/{typeSlug} + GET /products?typeSlug=…(+specs/q/sort/page)
+      +page.svelte           # filtered list; filters built from type.filterableFields
+      [productSlug]/
+        +page.server.ts      # GET /products/slug/{productSlug}
+        +page.svelte         # detail: gallery, specs table, description, related (same type)
   login/  register/          # auth entry points
 ```
 
 Adjust naming to taste, but keep content detail on a `[slug]` route (slugs come from the backend).
+
+> **Products are agreed** (structure above), even though the rest of Phase 3's inventory is still
+> provisional: `/products` is a **directory of product-type cards** (no products listed there), each
+> type has its own filtered list page, and detail lives at the **nested**
+> `/products/[typeSlug]/[productSlug]`. There is a filter-less **`/products/all`** list (sort +
+> pagination only — spec filters need a single-type context), but **no** unified "all products with
+> every *spec* filter" page (those filters differ too much between types). Note the static `all/`
+> route outranks `[typeSlug]/` in SvelteKit, so `all` is a reserved (non-usable) product-type slug.
+> The read schemas are fully typed; the only remaining blockers are Q11 (pagination UX) for the
+> paginated lists and Q-PAGES-3 (nav). See `STATE.md` → Phase 5.
 
 ---
 
@@ -61,6 +83,26 @@ Adjust naming to taste, but keep content detail on a `[slug]` route (slugs come 
 - `postType` (`post` | `page` | `story` | `series`) may warrant different layouts later; for now
   treat them uniformly unless told otherwise.
 - Use `SITE_CONFIG` for all brand chrome (name, logo, tagline, social links, support email).
+
+### Product rendering rules
+
+- Products are admin-curated content. **Product `description` is plain text** — render it with
+  `white-space: pre-wrap` to preserve line breaks. Do **not** use `{@html}` and no sanitization is
+  needed. (A rich-text editor may be added later if a field ever needs formatting.)
+- **Product lists are paginated** — `GET /products` returns a `{ apiVersion, data: { data, meta,
+  links } }` envelope. Read items from `data.data.data` and pagination from `data.data.meta`; send
+  `page`/`limit` plus the filters (`typeSlug`, `specs[...]`, `q`, `sort`) as query params in the
+  `load`. Paging control style follows Q11. (`GET /product-types` is a bare array — not paginated.)
+- Each product embeds its `productType` on read — no extra fetch needed to show the type.
+- The **per-type filter UI** is built from `type.filterableFields` (number facets → min/max range or
+  exact; enum → dropdown; string → text/exact). Don't hardcode filter fields — derive them from the type.
+- **`/products/all`** is the cross-type catalog list: **sort + pagination only, no spec filters**
+  (spec filters require a single-type context). `all` is a reserved product-type slug (the static
+  route wins over `[typeSlug]`).
+- **Related products** on a detail page = `GET /products?typeSlug=…` for the same type, excluding the
+  current product's slug.
+- The spec filters serialize to bracket-nested query params (`specs[key]=v`,
+  `specs[key][min]=…&specs[key][max]=…`) — see `src/CLAUDE.md` for the serializer note.
 
 ---
 
@@ -77,6 +119,8 @@ Adjust naming to taste, but keep content detail on a `[slug]` route (slugs come 
 - Header shows login/register when `!page.data.user`, and account/sign-out when signed in.
 - Staff (`admin`/`author`/`editor`) see an entry link to `/admin`; plain `user` does not.
 - These are UI hints from `page.data.user` (`import { page } from '$app/state'`) — the real gate is in `/admin`'s server guard.
+- A top-level **Products** link (→ `/products`) is expected in the header nav; the full nav set is
+  still pending Q-PAGES-3.
 
 ---
 
