@@ -139,7 +139,8 @@ Two caveats remain:
 - The `GET /products` **spec filter** query is bracket-nested (`specs[key]=v` for enum/string,
   `specs[key][min]=…&specs[key][max]=…` for number ranges) and must be sent alongside a type context
   (`typeSlug` or `productTypeId`). `openapi-fetch`'s default serializer won't produce this shape — a
-  small dedicated serializer util is needed (Phase 5 step in `STATE.md`).
+  small dedicated serializer util is needed (Phase 5 step in `STATE.md`). Put it in `src/lib/utils/`
+  (e.g. `productQuery.ts`), per the utilities convention.
 
 ```ts
 // app.d.ts — canonical App.Locals['user'] shape

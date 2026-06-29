@@ -35,7 +35,7 @@ add detail for their area:
 - `CLAUDE.md` (this file) — stack, env, auth, roles, global rules
 - `DESIGN_SYSTEM.md` — color tokens, theming, day/night, design conventions **(read this before writing any CSS)**
 - `src/CLAUDE.md` — frontend architecture, API client, auth flow, stores, animations
-- `src/routes/admin/CLAUDE.md` — CMS panel: role guards, content endpoints, post workflow
+- `src/routes/admin/CLAUDE.md` — CMS panel: role guards, content endpoints, post workflow, product catalog
 
 Claude Code reads every `CLAUDE.md` from the working file up to the root, so you automatically
 have the relevant context for wherever you are working.

@@ -171,8 +171,9 @@ their drafts + review; admin sees all).
 - Validate on the server inside the action; mirror the DTO field rules from `openapi-types.ts`.
 - Call the backend via `serverApi(fetch)` (see `src/CLAUDE.md`).
 - Surface backend validation errors back to the form; don't swallow them.
-- Image upload (`POST /posts/{id}/images`) is multipart — handle the file in the action, forward
-  to the backend.
+- Image upload is multipart — handle the file in the action, forward to the backend. Posts use
+  `POST /posts/{id}/images` (gallery); products use `POST /products/{id}/image` (the single main
+  image), returning the product with its updated `imageUrl`.
 
 ---
 
@@ -180,7 +181,8 @@ their drafts + review; admin sees all).
 
 - Reuse the design tokens and semantic colors from `DESIGN_SYSTEM.md` — the admin panel is themed
   exactly like the public site (day/night included).
-- Tables: paginate anything backed by a paginated endpoint (`/users` supports `page`/`limit`).
+- Tables: paginate anything backed by a paginated endpoint (`/users`, `/products`, `/products/admin`
+  all support `page`/`limit`). `/product-types` is a bare array — no pagination.
 - Destructive actions (delete user/post, change role) require an explicit confirm step.
 - Show role- and ownership-derived affordances from server-provided booleans, never from
   client-side role math.
