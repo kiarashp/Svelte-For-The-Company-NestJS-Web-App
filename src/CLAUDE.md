@@ -102,18 +102,27 @@ Runs on every request, before any `load`:
 - `POST /google-authentication` returns **409 Conflict** when the email already exists as a local account. Parse `res.status === 409` in the server action to show a specific message instead of the generic error.
 - GIS warns about `initialize()` being called multiple times on HMR reloads. Guard with `if (window.google?.accounts?.id) return;` inside `script.onload` if it becomes noisy.
 
-**openapi-types known limitations for auth endpoints:**
-- `GET /users/me` — response typed as `content?: never` (generator bug). Parse `res.json()` manually and cast to `NonNullable<App.Locals['user']>`.
-- `POST /auth/refresh-tokens` — response is `content?: never`; parse tokens from `res.json()` manually. (`RefreshTokenDto` is now correctly typed with `refreshToken?: string`.)
-- `POST /auth/sign-in` — returns `401` for both wrong credentials AND unverified email. Distinguish them by parsing the body: unverified contains `"verify"` in `body.message`; wrong credentials says `"Invalid credentials"`. Response is `content?: never`; parse tokens from `res.json()` manually. (`SignInDto` is now correctly typed with `email` and `password` fields.)
-- `POST /google-authentication` — response is `content?: never`; parse tokens from `res.json()` manually. (`GoogleTokenDto` is correctly typed with `token: string`.)
-- `GET /auth/verify-email` — response is `content?: never`; check `res.ok` to determine success. Token is passed as a query param (`?token=`).
-- `POST /auth/resend-verification` — response is `content?: never`; check `res.ok`. Uses `ResendVerificationDto` (`{ email: string }`). Return a generic success message regardless of whether the email exists to avoid account enumeration.
-- `POST /auth/forgot-password` — response is `content?: never`; check `res.ok`. Always return `{ sent: true }` to the client regardless of result to avoid account enumeration.
-- `POST /auth/reset-password` — response is `content?: never`; check `res.ok`. Token comes from `?token=` in the email link; pass it through a hidden form field. Include `expired: boolean` in every `fail()` return so the ActionData union type stays consistent and `form.expired` is always readable.
-- `POST /auth/change-password` — response is `content?: never`; check `res.ok`. Authenticated endpoint — pass `Authorization: Bearer ${locals.accessToken}` manually (raw fetch, same reason as above). `403` means wrong current password.
+**Response envelope (universal):** every endpoint now returns `{ apiVersion?, data }`. Single
+reads/writes put the entity at `data`; paginated lists put `{ data, meta, links }` at `data` (so
+items are at `data.data`). This applies to auth, users, posts, tags, meta-options, audit, contact,
+products, and product-types alike. `GET /users/me` is now typed `AdminUser` (no longer
+`content?: never`), and the auth endpoints return typed `AuthTokensDto` / `MessageResponseDto`
+envelopes — new code may use the typed client directly.
 
-These limitations only affect `hooks.server.ts` and the auth route actions. All other endpoints that actually matter (posts, users CRUD, etc.) have correct response schemas.
+**Auth behaviors still NOT captured by the types** (keep handling these manually):
+- `POST /auth/sign-in` — returns `401` for both wrong credentials AND unverified email (the `401`
+  body isn't typed). Distinguish by parsing the body: unverified contains `"verify"` in
+  `body.message`; wrong credentials says `"Invalid credentials"`.
+- `POST /auth/change-password` — authenticated; `403` means wrong current password.
+- `POST /auth/resend-verification` & `POST /auth/forgot-password` — return a generic success
+  regardless of whether the email exists, to avoid account enumeration.
+- `POST /auth/reset-password` — token comes from `?token=` in the email link; pass it through a
+  hidden form field. Keep `expired: boolean` in every `fail()` return so the ActionData union stays
+  consistent and `form.expired` is always readable.
+
+**Existing auth-route code / `hooks.server.ts` parse `res.json()` manually** (written against the
+older `content?: never` types). That still works and does **not** need refactoring — the manual
+parse is valid even though the types have since improved.
 
 **Product / product-type read responses are fully typed** (unlike the auth endpoints). Every
 response is wrapped in a `{ apiVersion?, data? }` envelope:

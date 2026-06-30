@@ -5,36 +5,10 @@
 > 2. Remove the question from this file.
 > 3. Change the dependent step in `STATE.md` from ⛔ to ⬜.
 
----
-
-## Backend permissions — blocks Phase 4
-
-### Q1. Tag management — which roles?
-The permission matrix in `src/routes/admin/CLAUDE.md` marks tag create/edit/delete as `?` for
-`author` and `editor`. The OpenAPI types expose the endpoints but not the `@Roles()` guards.
-**Need:** the actual roles allowed on `POST /tags`, `PATCH /tags/{id}`, `DELETE /tags/{id}`,
-`DELETE /tags/soft/{id}`.
-→ _Unblocks: Phase 4 → Tag management_
-
-### Q2. Post image upload — which roles, and ownership?
-`POST /posts/{id}/images`: can an `author` upload only to their own posts? Can `editor` upload to
-any post? Confirm so the UI gates correctly.
-→ _Unblocks: Phase 4 → Image upload per post_
-
-### Q3. Who can manage meta-options?
-`/meta-options/{id}` (GET/PATCH/DELETE) — role(s)? Where does meta-option creation happen (no
-POST endpoint is visible; are they created as part of post creation via `metaOptions` on the DTO)?
-→ _Unblocks: Phase 4 → Meta-options_
-
----
-
-## Post response shape — blocks Phase 3 post rendering
-
-### Q6. `Post` response shape
-What does a post object look like on read (`GET /posts`, `GET /posts/slug/{slug}`)? Specifically:
-the author object shape (for ownership checks + display), tag shape, image list shape, and whether
-`content` is HTML, markdown, or structured JSON. Affects rendering and sanitization.
-→ _Unblocks: Phase 3 → Post detail `[slug]`_
+> **Resolved 2026-06-30 by the regenerated `openapi-types.ts`:** Q1 (tag roles), Q2 (post-image
+> roles), Q3 (meta-option roles), Q6 (post read shape), Q10 (postType — removed from the model),
+> Q11 (pagination — numbered pages). The role rules are now baked into the API `403` descriptions;
+> the authoritative permission matrix lives in `src/routes/admin/CLAUDE.md`.
 
 ---
 
@@ -58,7 +32,7 @@ legal, contact, sitemap)? Social links come from `SITE_CONFIG`.
 
 ### Q-PAGES-4. Blog list page
 Layout (cards / list)? What shows per item (image, excerpt, author, date, tags)? Filtering by
-tag? Sorting? Pagination style (ties to Q11)?
+tag? Sorting? (Pagination is numbered pages; keyword search via `?q=` is available.)
 → _Unblocks: Phase 3 → Blog list_
 
 ### Q-PAGES-5. Post detail page
@@ -88,16 +62,3 @@ What does each list show when empty? What's the 404 / 403 / error page treatment
 Company name, logo asset, tagline, brand colors. Until decided, `SITE_CONFIG` defaults +
 slate / indigo / teal palette stand in. When known: set env vars — no code changes needed.
 → _Unblocks: final polish (not blocking any build step)_
-
-### Q10. postType layouts
-Do `post` / `page` / `story` / `series` need distinct public layouts, or render uniformly for
-now? `series` in particular may imply grouping / ordering of child posts — is there a data model
-relationship for that?
-→ _Unblocks: Phase 3 → Post detail, Phase 4 → Post create / edit_
-
-### Q11. Pagination UX
-`GET /posts`, `GET /users`, and the product lists (`GET /products`, `GET /products/admin`) are
-paginated (`page` / `limit`). Preference: numbered pages, load-more, or infinite scroll? Affects
-public blog list, public product lists, and admin tables. (Note: `GET /product-types` is a bare
-array — not paginated.)
-→ _Unblocks: Phase 3 → Blog list; Phase 4 → Post list / user list; Phase 5 → all-products list, per-type list; Phase 6 → admin product list_

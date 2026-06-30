@@ -46,6 +46,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Create multiple users (admin only) */
         post: operations["UsersController_createManyUsers"];
         delete?: never;
         options?: never;
@@ -60,6 +61,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get the current user's own profile */
         get: operations["UsersController_getMe"];
         put?: never;
         post?: never;
@@ -129,12 +131,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get a single user by id (admin only) */
         get: operations["UsersController_getUser"];
         put?: never;
         post?: never;
+        /** Delete a user (admin only) */
         delete: operations["UsersController_deleteUser"];
         options?: never;
         head?: never;
+        /** Update a user (admin only) */
         patch: operations["UsersController_updateUser"];
         trace?: never;
     };
@@ -168,6 +173,7 @@ export interface paths {
         delete?: never;
         options?: never;
         head?: never;
+        /** Change a user's role (admin only) */
         patch: operations["UsersController_changeUserRole"];
         trace?: never;
     };
@@ -228,6 +234,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get all posts by the authenticated user */
         get: operations["PostsController_findMyPosts"];
         put?: never;
         post?: never;
@@ -247,6 +254,7 @@ export interface paths {
         get: operations["PostsController_findOne"];
         put?: never;
         post?: never;
+        /** Delete a post */
         delete: operations["PostsController_remove"];
         options?: never;
         head?: never;
@@ -290,6 +298,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/posts/{id}/images/{fileId}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete a single image from a post */
+        delete: operations["PostsController_removePostImage"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/tags": {
         parameters: {
             query?: never;
@@ -299,6 +324,7 @@ export interface paths {
         };
         get: operations["TagsController_findAllTags"];
         put?: never;
+        /** Create a new tag */
         post: operations["TagsController_createTag"];
         delete?: never;
         options?: never;
@@ -316,9 +342,11 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /** Hard-delete a tag */
         delete: operations["TagsController_deleteTag"];
         options?: never;
         head?: never;
+        /** Update a tag's fields */
         patch: operations["TagsController_updateTag"];
         trace?: never;
     };
@@ -332,6 +360,7 @@ export interface paths {
         get?: never;
         put?: never;
         post?: never;
+        /** Soft-delete a tag */
         delete: operations["TagsController_softDeleteTag"];
         options?: never;
         head?: never;
@@ -347,6 +376,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Sign in with email and password */
         post: operations["AuthController_signIn"];
         delete?: never;
         options?: never;
@@ -363,6 +393,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Exchange a refresh token for a new token pair */
         post: operations["AuthController_refreshTokens"];
         delete?: never;
         options?: never;
@@ -379,6 +410,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Clear the refresh token cookie (browser sign-out) */
         post: operations["AuthController_signOut"];
         delete?: never;
         options?: never;
@@ -393,6 +425,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Verify an email address from the emailed token */
         get: operations["AuthController_verifyEmail"];
         put?: never;
         post?: never;
@@ -411,6 +444,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Resend the email verification link */
         post: operations["AuthController_resendVerification"];
         delete?: never;
         options?: never;
@@ -427,6 +461,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Start the password reset flow */
         post: operations["AuthController_forgotPassword"];
         delete?: never;
         options?: never;
@@ -443,6 +478,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Set a new password using the reset token */
         post: operations["AuthController_resetPassword"];
         delete?: never;
         options?: never;
@@ -459,6 +495,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Change the current user’s password */
         post: operations["AuthController_changePassword"];
         delete?: never;
         options?: never;
@@ -475,6 +512,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Authenticate with a Google ID token */
         post: operations["GoogleAuthenticationController_authenticate"];
         delete?: never;
         options?: never;
@@ -489,12 +527,15 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get a MetaOption by ID */
         get: operations["MetaOptionsController_findOne"];
         put?: never;
         post?: never;
+        /** Delete a MetaOption (its post is kept) */
         delete: operations["MetaOptionsController_delete"];
         options?: never;
         head?: never;
+        /** Update the metaValue of a MetaOption */
         patch: operations["MetaOptionsController_update"];
         trace?: never;
     };
@@ -507,6 +548,7 @@ export interface paths {
         };
         get?: never;
         put?: never;
+        /** Submit a contact form message */
         post: operations["ContactController_submit"];
         delete?: never;
         options?: never;
@@ -585,7 +627,25 @@ export interface paths {
         patch: operations["ProductsController_update"];
         trace?: never;
     };
-    "/products/{id}/image": {
+    "/products/{id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all images uploaded for a product (admin only) */
+        get: operations["ProductsController_findImages"];
+        put?: never;
+        /** Upload a product image (admin only) */
+        post: operations["ProductsController_uploadImage"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/products/{id}/images/{fileId}": {
         parameters: {
             query?: never;
             header?: never;
@@ -594,9 +654,9 @@ export interface paths {
         };
         get?: never;
         put?: never;
-        /** Upload main product image (admin only) */
-        post: operations["ProductsController_uploadImage"];
-        delete?: never;
+        post?: never;
+        /** Delete a product image (admin only) */
+        delete: operations["ProductsController_removeImage"];
         options?: never;
         head?: never;
         patch?: never;
@@ -660,6 +720,25 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        AdminUser: {
+            /** @example 1 */
+            id: number;
+            /** @example Ada */
+            firstName: string;
+            /** @example Lovelace */
+            lastName?: string | null;
+            avatarUrl?: string | null;
+            bio?: string | null;
+            /** @example ada@example.com */
+            email: string;
+            /**
+             * @example user
+             * @enum {string}
+             */
+            role: "user" | "editor" | "author" | "admin";
+            /** @example true */
+            isEmailVerified: boolean;
+        };
         CreateUserDto: {
             /**
              * @description User first name
@@ -684,6 +763,33 @@ export interface components {
         };
         CreateManyUsersDto: {
             users: components["schemas"]["CreateUserDto"][];
+        };
+        AvatarOption: {
+            /** @example 1 */
+            id: number;
+            /** @example https://res.cloudinary.com/demo/image/upload/avatar.png */
+            url: string;
+            /** @example avatars/abc123 */
+            publicId: string;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        MessageResponseDto: {
+            /**
+             * @description Human-readable result message
+             * @example User with id 1 has been deleted
+             */
+            message: string;
+        };
+        PublicAuthor: {
+            /** @example 1 */
+            id: number;
+            /** @example Ada */
+            firstName: string;
+            /** @example Lovelace */
+            lastName?: string | null;
+            avatarUrl?: string | null;
+            bio?: string | null;
         };
         PatchUserProfileDto: {
             /**
@@ -735,6 +841,70 @@ export interface components {
              */
             password?: string;
         };
+        AuditLog: {
+            /** @example 1 */
+            id: number;
+            /** @example 42 */
+            userId?: number | null;
+            /** @example CREATE */
+            action: string;
+            /** @example Post */
+            entity: string;
+            /** @example 7 */
+            entityId: number;
+            /** Format: date-time */
+            createdAt: string;
+        };
+        MetaOption: {
+            /** @example 1 */
+            id: number;
+            /** @example { "sidebar": true } */
+            metaValue: string;
+            /** Format: date-time */
+            createDate: string;
+            /** Format: date-time */
+            updateDate: string;
+        };
+        Tag: {
+            /** @example 1 */
+            id: number;
+            /** @example TypeScript */
+            name: string;
+            /** @example typescript */
+            slug: string;
+            description?: string | null;
+            schema?: string | null;
+            featuredImage?: string | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+            /** Format: date-time */
+            deletedAt?: string | null;
+        };
+        Post: {
+            /** @example 1 */
+            id: number;
+            /** @example My first post */
+            title: string;
+            /** @example my-first-post */
+            slug: string;
+            /**
+             * @example published
+             * @enum {string}
+             */
+            status: "draft" | "scheduled" | "review" | "published";
+            content?: string | null;
+            schema?: string | null;
+            featuredImage?: string | null;
+            /** Format: date-time */
+            publishOn?: string | null;
+            metaOptions?: components["schemas"]["MetaOption"] | null;
+            author: components["schemas"]["PublicAuthor"];
+            tags?: components["schemas"]["Tag"][];
+            /** Format: date-time */
+            createdAt: string;
+        };
         CreatePostMetaOptionsDto: {
             /**
              * @description The meta value is a JSON string
@@ -748,12 +918,6 @@ export interface components {
              * @example My first post title
              */
             title?: string;
-            /**
-             * @description Possible values: post, page, story, series
-             * @example post
-             * @enum {string}
-             */
-            postType: "post" | "page" | "story" | "series";
             /**
              * @description The slug of the post
              * @example my-first-post
@@ -808,12 +972,6 @@ export interface components {
              */
             title?: string;
             /**
-             * @description Possible values: post, page, story, series
-             * @example post
-             * @enum {string}
-             */
-            postType?: "post" | "page" | "story" | "series";
-            /**
              * @description The slug of the post
              * @example my-first-post
              */
@@ -863,6 +1021,47 @@ export interface components {
         PostTagsDto: {
             tagIds: number[];
         };
+        UploadFile: {
+            /** @example 1 */
+            id: number;
+            /** @example photo.jpg */
+            name: string;
+            /** @example https://res.cloudinary.com/.../photo.jpg */
+            path: string;
+            /** @example posts/12/photo */
+            publicId: string;
+            /**
+             * @example image
+             * @enum {string}
+             */
+            type: "image";
+            /** @example image/jpeg */
+            mime: string;
+            /** @example 204800 */
+            size: number;
+            /** @example 1 */
+            userId: number;
+            /** @example 12 */
+            postId?: number | null;
+            /** @example 7 */
+            productId?: number | null;
+            /** Format: date-time */
+            createdAt: string;
+            /** Format: date-time */
+            updatedAt: string;
+        };
+        DeleteResultDto: {
+            /**
+             * @description Whether the record was deleted
+             * @example true
+             */
+            deleted: boolean;
+            /**
+             * @description ID of the deleted record
+             * @example 1
+             */
+            id: number;
+        };
         CreateTagDto: {
             name: string;
             slug: string;
@@ -876,6 +1075,12 @@ export interface components {
             description?: string;
             schema?: string;
             featuredImage?: string;
+        };
+        AuthTokensDto: {
+            /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
+            accessToken: string;
+            /** @example eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9... */
+            refreshToken: string;
         };
         SignInDto: {
             /** @example user@example.com */
@@ -913,6 +1118,20 @@ export interface components {
              * @example { "village": "Konoha", "clan": "Uzumaki" }
              */
             metaValue?: string;
+        };
+        ContactSubmission: {
+            /** @example 1 */
+            id: number;
+            /** @example Ada Lovelace */
+            name: string;
+            /** @example ada@example.com */
+            email: string;
+            /** @example Project inquiry */
+            subject: string;
+            /** @example I'd like to discuss a collaboration. */
+            message: string;
+            /** Format: date-time */
+            createdAt: string;
         };
         CreateContactDto: {
             /** @example Jane Doe */
@@ -1108,18 +1327,6 @@ export interface components {
              * @default false
              */
             isPublished: boolean;
-        };
-        DeleteResultDto: {
-            /**
-             * @description Whether the record was deleted
-             * @example true
-             */
-            deleted: boolean;
-            /**
-             * @description ID of the deleted record
-             * @example 1
-             */
-            id: number;
         };
         CreateProductTypeDto: {
             /**
@@ -1333,6 +1540,42 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: {
+                            data?: components["schemas"]["AdminUser"][];
+                            meta?: {
+                                itemsPerPage?: number;
+                                totalItems?: number;
+                                currentPage?: number;
+                                totalPages?: number;
+                                hasNextPage?: boolean;
+                                hasPrevPage?: boolean;
+                            };
+                            links?: {
+                                first?: string;
+                                last?: string;
+                                current?: string;
+                                next?: string;
+                                prev?: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -1350,11 +1593,17 @@ export interface operations {
             };
         };
         responses: {
+            /** @description User registered */
             201: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
             };
         };
     };
@@ -1371,7 +1620,27 @@ export interface operations {
             };
         };
         responses: {
+            /** @description The created users */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"][];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1389,6 +1658,18 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1414,6 +1695,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -1432,7 +1725,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AvatarOption"][];
+                    };
+                };
             };
         };
     };
@@ -1447,6 +1745,25 @@ export interface operations {
         responses: {
             /** @description Avatar option created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AvatarOption"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1467,6 +1784,25 @@ export interface operations {
         responses: {
             /** @description Avatar option removed */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MessageResponseDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1497,7 +1833,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["PublicAuthor"];
+                    };
+                };
             };
             /** @description Not found or user is not a content author */
             404: {
@@ -1523,6 +1864,25 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -1538,7 +1898,27 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description User deleted */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MessageResponseDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1561,7 +1941,27 @@ export interface operations {
             };
         };
         responses: {
+            /** @description User updated */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1587,10 +1987,22 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
             };
             /** @description Unknown avatar option id */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1613,7 +2025,27 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Role updated */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1636,6 +2068,42 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: {
+                            data?: components["schemas"]["AuditLog"][];
+                            meta?: {
+                                itemsPerPage?: number;
+                                totalItems?: number;
+                                currentPage?: number;
+                                totalPages?: number;
+                                hasNextPage?: boolean;
+                                hasPrevPage?: boolean;
+                            };
+                            links?: {
+                                first?: string;
+                                last?: string;
+                                current?: string;
+                                next?: string;
+                                prev?: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1663,7 +2131,29 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: {
+                            data?: components["schemas"]["Post"][];
+                            meta?: {
+                                itemsPerPage?: number;
+                                totalItems?: number;
+                                currentPage?: number;
+                                totalPages?: number;
+                                hasNextPage?: boolean;
+                                hasPrevPage?: boolean;
+                            };
+                            links?: {
+                                first?: string;
+                                last?: string;
+                                current?: string;
+                                next?: string;
+                                prev?: string;
+                            };
+                        };
+                    };
+                };
             };
         };
     };
@@ -1682,6 +2172,25 @@ export interface operations {
         responses: {
             /** @description The post has been successfully created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Post"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1704,7 +2213,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Post"];
+                    };
+                };
             };
         };
     };
@@ -1728,6 +2242,35 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: {
+                            data?: components["schemas"]["Post"][];
+                            meta?: {
+                                itemsPerPage?: number;
+                                totalItems?: number;
+                                currentPage?: number;
+                                totalPages?: number;
+                                hasNextPage?: boolean;
+                                hasPrevPage?: boolean;
+                            };
+                            links?: {
+                                first?: string;
+                                last?: string;
+                                current?: string;
+                                next?: string;
+                                prev?: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -1747,7 +2290,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Post"];
+                    };
+                };
             };
         };
     };
@@ -1763,6 +2311,25 @@ export interface operations {
         requestBody?: never;
         responses: {
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["DeleteResultDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -1790,6 +2357,25 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Post"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -1814,7 +2400,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Post"];
+                    };
+                };
             };
             /** @description Invalid tag IDs */
             400: {
@@ -1823,7 +2414,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Not the post author */
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1859,9 +2457,21 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Post"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
-            /** @description Not the post author */
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1893,9 +2503,21 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["UploadFile"][];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
-            /** @description Not the post author */
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1927,7 +2549,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["UploadFile"];
+                    };
+                };
             };
             /** @description Invalid file */
             400: {
@@ -1936,7 +2563,14 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Not the post author */
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
             403: {
                 headers: {
                     [name: string]: unknown;
@@ -1944,6 +2578,52 @@ export interface operations {
                 content?: never;
             };
             /** @description Post not found */
+            404: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostsController_removePostImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                fileId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["DeleteResultDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Post or image not found */
             404: {
                 headers: {
                     [name: string]: unknown;
@@ -1965,7 +2645,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Tag"][];
+                    };
+                };
             };
         };
     };
@@ -1982,7 +2667,27 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Tag created */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Tag"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: author, admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2001,7 +2706,27 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Tag deleted */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["DeleteResultDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: author, admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2024,7 +2749,27 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Tag updated */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Tag"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: author, admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2043,7 +2788,27 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description Tag soft-deleted */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["DeleteResultDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: author, admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2064,11 +2829,17 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Access and refresh tokens */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AuthTokensDto"];
+                    };
+                };
             };
         };
     };
@@ -2085,11 +2856,17 @@ export interface operations {
             };
         };
         responses: {
+            /** @description New access and refresh tokens */
             200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AuthTokensDto"];
+                    };
+                };
             };
         };
     };
@@ -2106,7 +2883,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MessageResponseDto"];
+                    };
+                };
             };
         };
     };
@@ -2126,7 +2908,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MessageResponseDto"];
+                    };
+                };
             };
         };
     };
@@ -2147,7 +2934,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MessageResponseDto"];
+                    };
+                };
             };
         };
     };
@@ -2168,7 +2960,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MessageResponseDto"];
+                    };
+                };
             };
         };
     };
@@ -2189,7 +2986,12 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MessageResponseDto"];
+                    };
+                };
             };
         };
     };
@@ -2210,6 +3012,18 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MessageResponseDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -2227,11 +3041,17 @@ export interface operations {
             };
         };
         responses: {
-            201: {
+            /** @description Access and refresh tokens */
+            200: {
                 headers: {
                     [name: string]: unknown;
                 };
-                content?: never;
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AuthTokensDto"];
+                    };
+                };
             };
         };
     };
@@ -2250,6 +3070,25 @@ export interface operations {
                 headers: {
                     [name: string]: unknown;
                 };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MetaOption"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
                 content?: never;
             };
         };
@@ -2265,7 +3104,27 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
+            /** @description MetaOption deleted */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["DeleteResultDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR/AUTHOR limited to their own posts' meta-options; ADMIN bypasses */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2288,7 +3147,27 @@ export interface operations {
             };
         };
         responses: {
+            /** @description MetaOption updated */
             200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["MetaOption"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR/AUTHOR limited to their own posts' meta-options; ADMIN bypasses */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2309,7 +3188,20 @@ export interface operations {
             };
         };
         responses: {
+            /** @description Submission received and persisted */
             201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["ContactSubmission"];
+                    };
+                };
+            };
+            /** @description Too many requests (throttled to 3 per 5 minutes per IP) */
+            429: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2397,6 +3289,20 @@ export interface operations {
                         data?: components["schemas"]["Product"];
                     };
                 };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Slug or SKU already in use */
             409: {
@@ -2492,6 +3398,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     ProductsController_findOne: {
@@ -2547,6 +3467,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
         };
     };
     ProductsController_update: {
@@ -2575,8 +3509,68 @@ export interface operations {
                     };
                 };
             };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Slug or SKU already in use */
             409: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_findImages: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Array of UploadFile records */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["UploadFile"][];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Product not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2595,7 +3589,7 @@ export interface operations {
         };
         requestBody?: never;
         responses: {
-            /** @description Image uploaded; product returned with updated imageUrl */
+            /** @description Image uploaded; UploadFile record returned */
             201: {
                 headers: {
                     [name: string]: unknown;
@@ -2603,12 +3597,72 @@ export interface operations {
                 content: {
                     "application/json": {
                         apiVersion?: string;
-                        data?: components["schemas"]["Product"];
+                        data?: components["schemas"]["UploadFile"];
                     };
                 };
             };
             /** @description Invalid file type or size */
             400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    ProductsController_removeImage: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+                fileId: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["DeleteResultDto"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Product or image not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
@@ -2662,6 +3716,20 @@ export interface operations {
                         data?: components["schemas"]["ProductType"];
                     };
                 };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Name or slug already in use */
             409: {
@@ -2756,6 +3824,20 @@ export interface operations {
                     };
                 };
             };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Products still reference this type */
             409: {
                 headers: {
@@ -2790,6 +3872,20 @@ export interface operations {
                         data?: components["schemas"]["ProductType"];
                     };
                 };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
             /** @description Name or slug already in use */
             409: {

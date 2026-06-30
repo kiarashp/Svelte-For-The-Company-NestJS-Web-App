@@ -54,15 +54,17 @@ _Last updated: 2026-06-30_
 
 ## Phase 3 — Public Site `⛔ BLOCKED`
 
-> Blocked until page inventory and content questions are answered.
+> Blocked until page inventory questions are answered (the `Q-PAGES-*` set — human decisions, not
+> backend). The post read shape is now fully typed, pagination is numbered pages, and post `content`
+> is **Markdown** — rendering needs `pnpm add marked isomorphic-dompurify` (see `src/routes/CLAUDE.md`).
 > Once a question is resolved, remove its ⛔ and mark the step ⬜.
 
 | Step | Status | Blocked by |
 |---|:--:|---|
 | Public layout (header / footer / ThemeToggle) | ⛔ | Q-PAGES-3 (navigation) |
 | Homepage | ⛔ | Q-PAGES-1, Q-PAGES-2 |
-| Blog list | ⛔ | Q-PAGES-1, Q-PAGES-4, Q11 |
-| Post detail `[slug]` | ⛔ | Q-PAGES-1, Q-PAGES-5, Q6 |
+| Blog list | ⛔ | Q-PAGES-1, Q-PAGES-4 |
+| Post detail `[slug]` | ⛔ | Q-PAGES-1, Q-PAGES-5 |
 | Author public profile | ⛔ | Q-PAGES-1 |
 | Contact form | ⛔ | Q-PAGES-1 |
 | Auth page layout (login / register) | ⛔ | Q-PAGES-6 |
@@ -71,8 +73,9 @@ _Last updated: 2026-06-30_
 
 ## Phase 4 — Admin CMS `PARTIALLY UNBLOCKED`
 
-> Admin gate and core post CRUD are fully specified. Tag / image / meta steps need permission
-> answers first.
+> Admin gate, core post CRUD, and the tag / image / meta steps are all fully specified now — the
+> role rules are confirmed from the API `403` text (see `src/routes/admin/CLAUDE.md`). Only the two
+> inventory/treatment steps remain blocked on human page-inventory decisions.
 
 | Step | Status | Blocked by |
 |---|:--:|---|
@@ -85,9 +88,9 @@ _Last updated: 2026-06-30_
 | Role change | ⬜ | — |
 | Audit log viewer | ⬜ | — |
 | Avatar option management | ⬜ | — |
-| Tag management | ⛔ | Q1 |
-| Image upload per post | ⛔ | Q2 |
-| Meta-options | ⛔ | Q3 |
+| Tag management (vocabulary CRUD — author/admin) | ⬜ | — |
+| Image upload + delete per post (own posts) | ⬜ | — |
+| Meta-options | ⬜ | — |
 | Full admin page inventory | ⛔ | Q-PAGES-7 |
 | Empty / error / loading states | ⛔ | Q-PAGES-8 |
 
@@ -98,7 +101,8 @@ _Last updated: 2026-06-30_
 > Structure agreed (see `src/routes/CLAUDE.md`): `/products` is a product-type directory (cards use
 > `productCount`), `/products/all` is a filter-less sort+paginate list, each type has a filtered
 > list at `/products/[typeSlug]`, detail at `/products/[typeSlug]/[productSlug]`. Read schemas are
-> fully typed now, so only the paginated lists (Q11) and nav (Q-PAGES-3) remain blocked.
+> fully typed and pagination is numbered pages, so only adding Products to the public nav
+> (Q-PAGES-3) remains blocked.
 
 | Step | Status | Blocked by |
 |---|:--:|---|
@@ -106,8 +110,8 @@ _Last updated: 2026-06-30_
 | Products landing `/products` (type cards + `productCount`) | ⬜ | — |
 | `SpecFilters` component (renders facets → inputs) | ⬜ | — |
 | Product detail `/products/[typeSlug]/[productSlug]` (gallery, specs, description, related) | ⬜ | — |
-| All-products list `/products/all` (sort + pagination, no spec filters) | ⛔ | Q11 |
-| Per-type list `/products/[typeSlug]` (+ filters, sort, search, pagination) | ⛔ | Q11 |
+| All-products list `/products/all` (sort + pagination, no spec filters) | ⬜ | — |
+| Per-type list `/products/[typeSlug]` (+ filters, sort, search, pagination) | ⬜ | — |
 | Add Products to public nav | ⛔ | Q-PAGES-3 |
 
 ---
@@ -116,14 +120,15 @@ _Last updated: 2026-06-30_
 
 > Product writes are admin-only (explicit in the OpenAPI text). Read schemas are typed; **write DTOs
 > are mistyped** (`Record<string, never>` on JSON fields) so create/edit actions build + cast the
-> payload. Only the paginated admin product list (Q11) remains blocked.
+> payload. Nothing here is blocked — pagination is numbered pages and the image endpoints are the
+> plural gallery (`/products/{id}/images`).
 
 | Step | Status | Blocked by |
 |---|:--:|---|
 | Admin product create/edit + dynamic specs form (cast write DTO) | ⬜ | — |
-| Admin product main-image upload (`POST /products/{id}/image`) | ⬜ | — (multipart pattern known) |
+| Admin product image gallery (`GET/POST /products/{id}/images`, `DELETE …/{fileId}`) | ⬜ | — (multipart pattern known) |
 | Admin product delete (soft) | ⬜ | — |
 | Admin product-type list (bare array) | ⬜ | — |
 | Admin product-type create/edit + `filterableFields` facet editor (cast write DTO) | ⬜ | — |
 | Admin product-type delete (handle 409 — still referenced) | ⬜ | — |
-| Admin product list (`GET /products/admin`, incl. drafts, paginated) | ⛔ | Q11 |
+| Admin product list (`GET /products/admin`, incl. drafts, paginated) | ⬜ | — |

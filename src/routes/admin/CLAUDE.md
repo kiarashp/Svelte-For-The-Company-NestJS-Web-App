@@ -30,37 +30,47 @@ Per-route guards then narrow further (e.g. user-management is admin-only).
 
 ## Permission matrix (frontend intent)
 
-> ⚠️ Inferred from OpenAPI endpoint names, **not** from backend `@Roles()` guards. The backend is
-> authoritative — handle `403` gracefully and treat it as truth over this table.
+> ✅ Confirmed from the API `403` descriptions in the regenerated `openapi-types.ts` (the backend
+> lists the allowed roles in each forbidden response). The backend is still authoritative — handle
+> `403` gracefully and treat it as truth over this table.
 
 | Area | admin | author | editor | user |
 |---|:--:|:--:|:--:|:--:|
-| Create post | ✅ | ✅ | ❌ | ❌ |
-| Edit **own** post | ✅ | ✅ | ✅ | ❌ |
-| Edit **any** post | ✅ | ❌ | ✅ | ❌ |
-| Delete post | ✅ | own only | ❌ | ❌ |
-| Manage tags | ✅ | ? | ? | ❌ |
-| Upload post images | ✅ | own posts | ✅ | ❌ |
+| Create post | ✅ | ✅ | ✅ | ❌ |
+| Edit / delete **own** post | ✅ | own | own | ❌ |
+| Edit / delete **any** post | ✅ | ❌ | ❌ | ❌ |
+| Attach / detach tags **on own post** | ✅ | own | own | ❌ |
+| Upload / delete post images | ✅ | own | own | ❌ |
+| Manage post meta-options | ✅ | own | own | ❌ |
+| Manage **tag vocabulary** (`/tags` CRUD) | ✅ | ✅ | ❌ | ❌ |
 | Manage users | ✅ | ❌ | ❌ | ❌ |
 | Change user roles | ✅ | ❌ | ❌ | ❌ |
 | View audit logs | ✅ | ❌ | ❌ | ❌ |
 | Manage avatar options | ✅ | ❌ | ❌ | ❌ |
 | Create/edit/delete product | ✅ | ❌ | ❌ | ❌ |
-| Upload product image | ✅ | ❌ | ❌ | ❌ |
+| Upload / delete product image | ✅ | ❌ | ❌ | ❌ |
 | Create/edit/delete product type | ✅ | ❌ | ❌ | ❌ |
 
-Cells marked `?` are unverified from the types — confirm against the backend before relying on them.
-The product rows are **not** inferred: the OpenAPI descriptions state these endpoints are "admin only"
-explicitly, so authors/editors get no product write access.
+Two separate "tag" capabilities — don't conflate them:
+- **Attach/detach tags on a post** (`POST/DELETE /posts/{id}/tags`) → `editor, author, admin`;
+  editor/author limited to their **own** posts.
+- **Tag vocabulary CRUD** (`POST /tags`, `PATCH /tags/{id}`, `DELETE /tags/{id}`, `DELETE
+  /tags/soft/{id}`) → `author, admin` only. **Editors are excluded here per the API** — this is the
+  one capability where `author > editor`. (If editors should manage the vocabulary too, that's a
+  backend change.)
+
+`editor == author` for everything post-related. The product rows are admin-only (explicit in the
+OpenAPI descriptions), so authors/editors get no product write access.
 
 ### Ownership logic
 
-- **author**: may edit/delete a post only if `post.author.id === locals.user.id`. Compute this in
-  the server `load` and pass an `canEdit` / `canDelete` boolean to the component; don't recompute
-  ownership in the UI.
-- **editor**: may edit any post, but **cannot** create or delete. Hide create/delete affordances
-  for editors and guard the corresponding routes/actions server-side.
+- **author & editor (identical)**: may edit/delete a post, manage its images, tag it, and edit its
+  meta-options only if `post.author.id === locals.user.id`. Compute this in the server `load` and
+  pass `canEdit` / `canDelete` booleans to the component; don't recompute ownership in the UI. Both
+  roles can also **create** posts.
 - **admin**: no ownership restriction.
+- The lone difference between author and editor: **author** can manage the tag vocabulary
+  (`/tags` CRUD); **editor** cannot.
 
 ---
 
@@ -71,14 +81,16 @@ explicitly, so authors/editors get no product write access.
 - `GET /posts/my` — current user's own posts (the author dashboard list)
 - `GET /posts/{id}` — single post
 - `GET /posts/slug/{slug}` — by slug (public detail)
-- `POST /posts` — create (admin, author)
-- `PATCH /posts/{id}` — update (admin, editor, or owning author)
-- `DELETE /posts/{id}` — delete (admin, or owning author)
-- `POST /posts/{id}/tags` / `DELETE /posts/{id}/tags` — add/remove tags
-- `GET /posts/{id}/images` / `POST /posts/{id}/images` — list/upload images
+- `POST /posts` — create (admin, author, editor)
+- `PATCH /posts/{id}` — update (admin, author, editor; author/editor own posts only)
+- `DELETE /posts/{id}` — delete (admin, author, editor; author/editor own posts only)
+- `POST /posts/{id}/tags` / `DELETE /posts/{id}/tags` — add/remove tags (admin, author, editor; own posts only)
+- `GET /posts/{id}/images` / `POST /posts/{id}/images` — list/upload images (own posts only for author/editor)
+- `DELETE /posts/{id}/images/{fileId}` — delete a single post image (own posts only for author/editor)
 
 ### Tags
-- `GET /tags`, `POST /tags`, `PATCH /tags/{id}`, `DELETE /tags/{id}`, `DELETE /tags/soft/{id}`
+- `GET /tags` — public list. **Vocabulary CRUD is `author, admin` only** (editors excluded):
+  `POST /tags`, `PATCH /tags/{id}`, `DELETE /tags/{id}` (hard), `DELETE /tags/soft/{id}` (soft).
 
 ### Users (admin)
 - `GET /users` (paginated: `?page&limit`), `POST /users`, `POST /users/create-many`
@@ -102,7 +114,9 @@ explicitly, so authors/editors get no product write access.
 - `POST /products` — create (admin); `409` on duplicate slug or SKU
 - `PATCH /products/{id}` — update (admin)
 - `DELETE /products/{id}` — soft-delete (admin)
-- `POST /products/{id}/image` — upload main image (admin), **multipart** — same handling as post images
+- `GET /products/{id}/images` / `POST /products/{id}/images` — list/upload product images (admin),
+  **multipart** — gallery, same handling as post images
+- `DELETE /products/{id}/images/{fileId}` — delete a single product image (admin)
 
 ### Product types (writes admin-only; reads public; list is a **bare array**)
 - `GET /product-types` — **not paginated**: `data` is a plain `ProductType[]`. Each type carries `productCount` (published-product count) and its `filterableFields`.
@@ -114,12 +128,14 @@ explicitly, so authors/editors get no product write access.
 
 ## Post model facts (from DTOs)
 
-- **postType**: `post` | `page` | `story` | `series` (required on create)
-- **status**: `draft` | `scheduled` | `review` | `published`
+- **status**: `draft` | `scheduled` | `review` | `published` (there is no `postType` — a post is
+  just a post).
 - `publishOn` is an ISO date-time — relevant when `status = scheduled`.
 - `slug` — generate from title if the user doesn't supply one; ensure uniqueness server-side.
-- `tags` on create/patch is an array of tag identifiers.
-- `content` is the body; `schema` is a serialized JSON string for structured meta.
+- `tags` on create/patch is an array of tag identifiers. **Type quirk:** `CreatePostDto.tags` /
+  `PatchPostDto.tags` are typed `string[]`, but `PostTagsDto.tagIds` (the `/posts/{id}/tags`
+  endpoints) is `number[]` — convert accordingly in the editor.
+- `content` is the **Markdown** body; `schema` is a serialized JSON string for structured meta.
 - `featuredImage` is a URL string. Additional images go through `POST /posts/{id}/images`.
 
 ### Status workflow (UI guidance)
@@ -172,8 +188,8 @@ their drafts + review; admin sees all).
 - Call the backend via `serverApi(fetch)` (see `src/CLAUDE.md`).
 - Surface backend validation errors back to the form; don't swallow them.
 - Image upload is multipart — handle the file in the action, forward to the backend. Posts use
-  `POST /posts/{id}/images` (gallery); products use `POST /products/{id}/image` (the single main
-  image), returning the product with its updated `imageUrl`.
+  `POST /posts/{id}/images` and products use `POST /products/{id}/images` — both are galleries that
+  return an `UploadFile` record, with `GET …/images` to list and `DELETE …/images/{fileId}` to remove.
 
 ---
 

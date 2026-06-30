@@ -24,7 +24,7 @@ what has been agreed and is reflected in `STATE.md`.
 ## What this project is
 
 A SvelteKit **company website with a built-in CMS**. The public-facing site displays content
-(posts, pages, stories, series) and a **product catalog** (products grouped by product type, with
+(posts) and a **product catalog** (products grouped by product type, with
 type-specific filterable specs) managed through an `/admin` panel. The backend is an existing
 **NestJS API** with authentication and a 4-role system, consumed via `openapi-fetch` using
 auto-generated types.
@@ -176,15 +176,16 @@ Details and code in `src/CLAUDE.md`.
 
 | Role | Capabilities |
 |---|---|
-| `admin` | Everything: manage users, change roles, create/edit/delete any post, view audit logs |
-| `author` | Create posts; edit/delete **own** posts only |
-| `editor` | Edit **any** post; cannot create or delete |
+| `admin` | Everything, unrestricted: manage users, change roles, manage the tag vocabulary, view audit logs, manage products; create/edit/delete **any** post |
+| `author` | Create posts; full management of **own** posts only (edit, delete, images, tags-on-post, meta-options); manage the tag vocabulary (`/tags` CRUD) |
+| `editor` | Same as `author` for posts (create + own-posts-only); **cannot** manage the tag vocabulary |
 | `user` | Register and view public content. No write access. |
 
-> ⚠️ This matrix is **inferred from the OpenAPI endpoint names**, not from reading the backend's
-> `@Roles()` guards (those aren't exposed in the types). Treat it as intended frontend behavior.
-> **The backend is the real authority** — a `403` from the API is the source of truth, not this
-> table. Build UI that gracefully handles being wrong about permissions.
+> ✅ This matrix is now **confirmed from the API `403` descriptions** in the regenerated
+> `openapi-types.ts` (the backend embeds the allowed roles in each forbidden response), not merely
+> inferred from endpoint names. **The backend is still the real authority** — a `403` from the API
+> is the source of truth, so build UI that gracefully handles being wrong about permissions.
+> Note: `editor == author` for posts; the only `author > editor` difference is tag-vocabulary CRUD.
 
 Role guards belong in `+page.server.ts` / `+layout.server.ts` `load` functions. Components
 receive already-guarded data. Client-side role checks are for hiding/showing UI only and must

@@ -78,10 +78,9 @@ Adjust naming to taste, but keep content detail on a `[slug]` route (slugs come 
 
 - **Post detail** comes from `GET /posts/slug/{slug}`. Render `content`; show `featuredImage`,
   tags, author, and publish date when present.
-- `content` may be HTML or rich text from the CMS — sanitize before rendering if it can contain
-  user/author HTML. Never inject unsanitized HTML with `{@html}`.
-- `postType` (`post` | `page` | `story` | `series`) may warrant different layouts later; for now
-  treat them uniformly unless told otherwise.
+- `content` is **Markdown**. Render it by parsing with `marked` → sanitizing the resulting HTML
+  with `isomorphic-dompurify` (runs on SSR + client) → injecting with `{@html}`. Never `{@html}`
+  the parser output without sanitizing first. (Install: `pnpm add marked isomorphic-dompurify`.)
 - Use `SITE_CONFIG` for all brand chrome (name, logo, tagline, social links, support email).
 
 ### Product rendering rules
