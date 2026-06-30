@@ -120,9 +120,12 @@ envelopes — new code may use the typed client directly.
   hidden form field. Keep `expired: boolean` in every `fail()` return so the ActionData union stays
   consistent and `form.expired` is always readable.
 
-**Existing auth-route code / `hooks.server.ts` parse `res.json()` manually** (written against the
-older `content?: never` types). That still works and does **not** need refactoring — the manual
-parse is valid even though the types have since improved.
+**Auth-route code / `hooks.server.ts` parse `res.json()` manually** (written against the older
+`content?: never` types). The manual parse is fine, but **you must still read the entity from
+`.data`** — every response is enveloped as `{ apiVersion?, data }` (see "API response envelope" in
+root `CLAUDE.md`). Casting `res.json()` straight to the entity type skips the envelope and yields an
+object with every field `undefined` — e.g. `GET /users/me` → `locals.user.role` came back
+`undefined` and silently 403'd all staff. The correct unwrap is `(await res.json()).data`.
 
 **Product / product-type read responses are fully typed** (unlike the auth endpoints). Every
 response is wrapped in a `{ apiVersion?, data? }` envelope:

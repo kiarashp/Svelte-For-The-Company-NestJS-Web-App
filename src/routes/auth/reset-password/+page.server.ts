@@ -39,7 +39,10 @@ export const actions: Actions = {
 				body: JSON.stringify({ token, newPassword })
 			});
 		} catch {
-			return fail(503, { expired: false, message: 'Could not reach the server. Please try again.' });
+			return fail(503, {
+				expired: false,
+				message: 'Could not reach the server. Please try again.'
+			});
 		}
 
 		if (!res.ok) {

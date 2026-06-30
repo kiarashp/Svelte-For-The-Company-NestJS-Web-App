@@ -37,8 +37,9 @@ async function fetchMe(fetchFn: typeof fetch, token: string): Promise<MeResponse
 		throw new Error(`GET /users/me returned ${res.status}`);
 	}
 
-	// openapi-types marks the 200 body as `content?: never` — cast the real shape manually.
-	return (await res.json()) as MeResponse;
+	// GET /users/me returns the universal { apiVersion, data } envelope — the user (with its
+	// role) lives at .data. Unwrap it; casting the whole envelope drops role and breaks guards.
+	return (await res.json()).data as MeResponse;
 }
 
 /**

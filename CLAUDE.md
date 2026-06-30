@@ -140,6 +140,26 @@ When the company name/brand is finalized, set the env vars — no code changes n
 
 ---
 
+## API response envelope (critical — every endpoint, no exceptions)
+
+**The backend wraps EVERY response in `{ apiVersion?, data }`.** The thing you want is always at
+`.data` — never at the top level. This trips up agents repeatedly; do not forget it.
+
+- **Single read / create / update / image upload** → the entity is at `.data`.
+  `const json = await res.json(); const user = json.data;` (raw fetch), or
+  `const { data } = await client.GET(...); const user = data?.data;` (openapi-fetch).
+- **Paginated lists** (`/users`, `/products`, `/products/admin`, `/posts/admin`, `/posts/my`) →
+  `.data` is `{ data: T[], meta, links }`, so **items are at `.data.data`** and pagination at
+  `.data.meta`.
+- **Bare-array lists** (`/product-types`) → still enveloped: the array is at `.data`.
+
+⚠️ Casting `res.json()` directly to the entity type (skipping `.data`) compiles fine but yields an
+object missing every real field — e.g. `user.role` comes back `undefined`, silently breaking role
+guards (this was a real `hooks.server.ts` bug). When a field you expect is missing, suspect a
+forgotten `.data` unwrap first.
+
+---
+
 ## Auth rules (critical — read carefully)
 
 **Token mechanics:** `POST /auth/sign-in` returns `{ accessToken, refreshToken }` in the

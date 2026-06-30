@@ -244,6 +244,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/posts/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List all posts including drafts (author and admin) */
+        get: operations["PostsController_findAllAdmin"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/posts/{id}": {
         parameters: {
             query?: never;
@@ -2268,6 +2285,66 @@ export interface operations {
             };
             /** @description Unauthorized — missing or invalid access token */
             401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostsController_findAllAdmin: {
+        parameters: {
+            query?: {
+                /** @description Keyword search across title and content */
+                q?: string;
+                /** @description Number of items per page */
+                limit?: number;
+                /** @description Page number to return (1-based) */
+                page?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: {
+                            data?: components["schemas"]["Post"][];
+                            meta?: {
+                                itemsPerPage?: number;
+                                totalItems?: number;
+                                currentPage?: number;
+                                totalPages?: number;
+                                hasNextPage?: boolean;
+                                hasPrevPage?: boolean;
+                            };
+                            links?: {
+                                first?: string;
+                                last?: string;
+                                current?: string;
+                                next?: string;
+                                prev?: string;
+                            };
+                        };
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: author, admin */
+            403: {
                 headers: {
                     [name: string]: unknown;
                 };

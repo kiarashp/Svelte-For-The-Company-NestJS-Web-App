@@ -37,8 +37,8 @@ Per-route guards then narrow further (e.g. user-management is admin-only).
 | Area | admin | author | editor | user |
 |---|:--:|:--:|:--:|:--:|
 | Create post | ✅ | ✅ | ✅ | ❌ |
-| Edit / delete **own** post | ✅ | own | own | ❌ |
-| Edit / delete **any** post | ✅ | ❌ | ❌ | ❌ |
+| Edit / delete **own** post | ✅ | ✅ | own | ❌ |
+| Edit / delete **any** post | ✅ | ✅ | ❌ | ❌ |
 | Attach / detach tags **on own post** | ✅ | own | own | ❌ |
 | Upload / delete post images | ✅ | own | own | ❌ |
 | Manage post meta-options | ✅ | own | own | ❌ |
@@ -64,11 +64,14 @@ OpenAPI descriptions), so authors/editors get no product write access.
 
 ### Ownership logic
 
-- **author & editor (identical)**: may edit/delete a post, manage its images, tag it, and edit its
-  meta-options only if `post.author.id === locals.user.id`. Compute this in the server `load` and
-  pass `canEdit` / `canDelete` booleans to the component; don't recompute ownership in the UI. Both
-  roles can also **create** posts.
-- **admin**: no ownership restriction.
+Confirmed from the `PATCH/DELETE /posts/{id}` 403 descriptions in `openapi-types.ts`:
+_"requires role: editor, author, admin; EDITOR limited to their own posts"_
+
+- **admin & author (identical for posts)**: may edit/delete **any** post, manage its images, tag it,
+  and edit its meta-options regardless of who wrote it. Both can also **create** posts. Compute
+  this in the server `load` and pass `canEdit` / `canDelete` booleans to the component.
+- **editor**: same create/edit/delete rights, but **limited to own posts** only
+  (`post.author.id === locals.user.id`). Compute in the server `load` — don't recompute in the UI.
 - The lone difference between author and editor: **author** can manage the tag vocabulary
   (`/tags` CRUD); **editor** cannot.
 
