@@ -129,6 +129,14 @@ envelopes — new code may use the typed client directly.
 - `POST /auth/reset-password` — token comes from `?token=` in the email link; pass it through a
   hidden form field. Keep `expired: boolean` in every `fail()` return so the ActionData union stays
   consistent and `form.expired` is always readable.
+- `POST /auth/sign-in` is **tightly throttled** (confirmed via e2e testing — a handful of requests
+  per ~20-30s window, backend returns `429` + a `Retry-After` header). The login action's generic
+  `!res.ok` branch maps a `429` onto the same "Sign-in failed. Please try again." message as any
+  other non-401 failure — there's no user-facing "too many attempts, try again in Xs" distinction
+  today. Worth knowing if a user reports login "randomly" failing during rapid retries.
+- `POST /users` (registration) success redirects straight to `/login` with **no confirmation
+  message** — there is no "check your email" state in the UI. The backend fires the verification
+  email regardless; the frontend just doesn't say so.
 
 **Auth-route code / `hooks.server.ts` parse `res.json()` manually** (written against the older
 `content?: never` types). The manual parse is fine, but **you must still read the entity from

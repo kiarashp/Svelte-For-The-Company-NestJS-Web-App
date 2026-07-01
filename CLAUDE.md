@@ -242,6 +242,32 @@ Naming: components `PascalCase.svelte`; routes per SvelteKit convention (`+page.
 
 ---
 
+## Testing
+
+- **Playwright is the primary trust signal**, not Vitest. Specs drive a real browser against the
+  real dev server (`pnpm dev`) talking to a **real local NestJS backend** (`PUBLIC_API_URL`) — no
+  network-layer mocking. This is what catches the bugs this codebase has actually had: role-guard
+  mistakes, ownership gaps, the `.data` envelope bug, cookie/auth regressions.
+- **Vitest is intentionally not installed yet.** It's only worth adding once genuine pure logic
+  exists to stress-test with many inputs and no backend (e.g. the future product spec-filter
+  serializer in `src/lib/utils/`, which is empty today). Don't add Vitest speculatively.
+- Specs live in `tests/`, not `e2e/` — SvelteKit's generated `.svelte-kit/tsconfig.json` only
+  auto-includes `test/**`/`tests/**` for `svelte-check`, so this naming gets type-checked for free.
+- `POST /auth/sign-in` is **tightly throttled** on the real backend (a handful of requests per
+  ~20-30s window, `429` + `Retry-After`). `tests/global-setup.ts` logs in once per seeded role
+  (admin/author/editor/user) through the real `/login` form and caches the session as Playwright
+  `storageState` in `tests/.auth/` (gitignored) — specs start pre-authenticated instead of
+  resubmitting the login form. `tests/fixtures.ts` → `loginAs` / `submitLoginExpectingFailure`
+  retry-and-wait on a throttled attempt (reading the real `Retry-After` header) rather than
+  assuming a form submission just works first try.
+- Seeded test credentials split like the rest of the env files: non-secret config
+  (`PUBLIC_API_URL`) lives in the git-tracked `.env.test`; the actual `SEED_ADMIN_EMAIL`/
+  `SEED_ADMIN_PASSWORD` etc. (same var names as the backend's `pnpm run seed:dev`) live in the
+  gitignored `.env.test.local` — never put real credentials in `.env.test`.
+- Run with `pnpm test:e2e` (headless) or `pnpm test:e2e:ui` (interactive debugging).
+
+---
+
 ## Svelte version — ALWAYS Svelte 5
 
 **WE ALWAYS USE SVELTE 5 SYNTAX AND THE SVELTE 5 WAY OF CODING.**

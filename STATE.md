@@ -3,7 +3,8 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-07-01_ (Post create built; post list bug fix — see Phase 4 notes)
+_Last updated: 2026-07-01_ (Post create + post edit built; post list bug fix — see Phase 4 notes;
+Playwright e2e testing infra added — see "Testing infrastructure" below)
 
 ---
 
@@ -13,6 +14,23 @@ _Last updated: 2026-07-01_ (Post create built; post list bug fix — see Phase 4
 - 🟨 In progress
 - ✅ Done
 - ⛔ Blocked — see `OPEN_QUESTIONS.md` for the referenced question
+
+---
+
+## Testing infrastructure `AVAILABLE`
+
+> Not a roadmap phase — cross-cutting tooling, added once Phase 2 (auth) and part of Phase 4
+> (admin post list/create) had enough built to be worth testing. Full detail in root `CLAUDE.md` →
+> "Testing"; don't duplicate it here.
+
+Playwright is set up under `tests/` and runs against the real local backend (no mocking). Coverage:
+`tests/auth.spec.ts` (login for all 4 seeded roles via `tests/global-setup.ts`, wrong password,
+logout, register), `tests/admin-access.spec.ts` (role-gate matrix — guest → `/login`, `user` → 403,
+staff → through), and `tests/admin-posts.spec.ts` (post list loads without the `.data`-envelope
+`loadError`, post create redirects and the new post appears in the list). All 12 specs pass as of
+this writing. Not covered yet: post edit, post delete, tags, users, audit logs, products — add
+specs there when those areas get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not
+installed — see root `CLAUDE.md` → "Testing" for why.
 
 ---
 
@@ -80,9 +98,12 @@ _Last updated: 2026-07-01_ (Post create built; post list bug fix — see Phase 4
 >
 > **Post create v1 scope:** intentionally excludes `publishOn`, `featuredImage`, and `schema`
 > (and therefore the `scheduled` status option) — see `src/routes/admin/CLAUDE.md` → "Post create
-> v1 — fields intentionally deferred" for the reasoning. **Post edit is the practical next step**:
-> a created draft currently has no page to attach images to (no upload flow exists without an edit
-> page), so featuredImage/gallery upload should likely land alongside it.
+> v1 — fields intentionally deferred" for the reasoning. **Post edit is now built and verified**
+> (same deferred-fields scope as create — no `publishOn`/`featuredImage`/`schema`/`scheduled`).
+> It required a new backend endpoint, `GET /posts/{id}/admin` (any status, same ownership as
+> `PATCH /posts/{id}`), since the original `GET /posts/{id}` turned out to be published-only — see
+> `src/routes/admin/CLAUDE.md` → "Relevant backend endpoints". Image upload/gallery and meta-options
+> remain their own separate ⬜ steps below, not bundled into post edit.
 >
 > **Bug fixed in the post list load** (`src/routes/admin/posts/+page.server.ts`): it read only
 > `data` from the typed client call and ignored `error`/`response.ok`, so a failed fetch (hit
@@ -97,7 +118,7 @@ _Last updated: 2026-07-01_ (Post create built; post list bug fix — see Phase 4
 | Admin layout guard (`+layout.server.ts`) | ✅ | — |
 | Post list / dashboard | ✅ | — |
 | Post create | ✅ | — |
-| Post edit (ownership rules) | ⬜ | — |
+| Post edit (ownership rules) | ✅ | — |
 | Post delete | ⬜ | — |
 | User management | ⬜ | — |
 | Role change | ⬜ | — |
