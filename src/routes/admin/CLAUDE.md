@@ -118,16 +118,26 @@ _"requires role: editor, author, admin; EDITOR limited to their own posts"_
   self-registration was already available — only this endpoint can set role/verified status at
   creation time.
 - `GET /users/{id}`, `PATCH /users/{id}`, `DELETE /users/{id}`
-- `PATCH /users/{id}/role` — change role (admin only) — **still not consumed by the frontend**; the
-  built `/admin/users` list/edit/delete deliberately shows role read-only everywhere (including on
-  the new create form's dropdown, which sets role once at creation but never changes it again) and
-  never calls this endpoint — role *change* for an existing user is its own separate, still-⬜ step.
+- `PATCH /users/{id}/role` — change role (admin only) — **now wired up** at
+  `/admin/users/{id}/role` (`src/routes/admin/users/[id]/role/`), a dedicated confirm-step route
+  mirroring the delete-confirmation pattern (role `<select>` defaulting to the current role, submit
+  disabled until a different one is chosen). The `/admin/users` list and edit-page role badge stay
+  read-only in place — they now link out to this route instead. **Self role-change is blocked**:
+  there's no backend guard against an admin changing their own role, so (like self-delete) both
+  `load` and the `changeRole` action 403 on `id === locals.user.id`, and the "Role"/"Change role"
+  links are omitted from the admin's own row/page. All 4 roles are selectable, including promoting
+  to `admin` (confirmed with the human — same stance as the admin-create-user form's dropdown).
 - `PATCH /users/{id}/verify-email` — **now wired up** as two named actions,
   `verifyEmail`/`unverifyEmail`, in `src/routes/admin/users/[id]/+page.server.ts`. Each posts a
   fixed `{ isEmailVerified: true | false }` — no client-supplied "current status" is trusted — and
   is a **separate action/button** from the main "Save changes" (profile-fields) form on the edit
   page, not a checkbox folded into it (confirmed with the human). Setting `true` also clears any
-  outstanding verification token server-side.
+  outstanding verification token server-side. **Self-toggle is blocked** — same pattern as
+  self-delete/self-role-change: there's no backend guard against an admin changing their own
+  verified status, so both actions 403 on `id === locals.user.id`, and the verify/unverify
+  toggle buttons are omitted from the signed-in admin's own edit page (the "Verified"/"Not
+  verified" status text still shows, just without the button). Rationale: an admin marking
+  themselves unverified would fail `/auth/sign-in` next time with no other admin around to fix it.
 - `GET /users/me`, `PATCH /users/me` — current user profile
 - `PATCH /users/avatar` — select predefined avatar
 - `GET /users/avatar-options`, `POST /users/avatar-options`, `DELETE /users/avatar-options/{id}` (admin manage)

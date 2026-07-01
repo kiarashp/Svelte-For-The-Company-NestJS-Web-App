@@ -4,8 +4,9 @@
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
 _Last updated: 2026-07-02_ (User management — list/view/edit/delete + admin-create-user +
-email-verified toggle — built; post create + post edit + post delete built; post list bug fix —
-see Phase 4 notes; Playwright e2e testing infra added — see "Testing infrastructure" below)
+email-verified toggle + role change — built; post create + post edit + post delete built; post
+list bug fix — see Phase 4 notes; Playwright e2e testing infra added — see "Testing
+infrastructure" below)
 
 ---
 
@@ -37,8 +38,17 @@ creates a user with a chosen role via `/admin/users/new`, admin toggles a user's
 status via the edit page's separate verify/unverify action), and `tests/admin-users-delete.spec.ts`
 (admin deletes a non-self user; the admin's own row omits the delete link and direct navigation to
 its delete route gets the server's `403`). All 24 specs pass as of this writing. Not covered yet:
-tags, audit logs, products — add specs there when those areas get e2e-worthy. Run with
-`pnpm test:e2e`. Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for why.
+tags, audit logs, products, role change, self-verify-toggle guard — add specs there when those
+areas get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not installed — see root
+`CLAUDE.md` → "Testing" for why.
+
+> Role change (`/admin/users/{id}/role`) and the self-verify-toggle guard on
+> `verifyEmail`/`unverifyEmail` were checked with one-off Playwright scripts run manually against
+> the real dev server, then deleted — not committed as specs. So unlike everything listed above,
+> these two paths have **no permanent regression coverage yet**; a future session adding
+> `tests/admin-users-role.spec.ts` (or extending `admin-users.spec.ts`/`admin-users-delete.spec.ts`)
+> should cover: the role `<select>` + disabled-until-changed button, the redirect + updated badge,
+> and the self-guard 403 on both the role route and the verify/unverify actions.
 
 > Two test-writing gotchas surfaced while building the user-management specs (`browser.newContext()`
 > silently inheriting the enclosing `storageState`; an SSR-hydration race that can clobber
@@ -147,7 +157,20 @@ tags, audit logs, products — add specs there when those areas get e2e-worthy. 
 > section's existing admin-only gate). The edit page's verified-status toggle is a **separate
 > action** (`verifyEmail`/`unverifyEmail`, each posting a fixed boolean) from the main "Save
 > changes" form, not a checkbox folded into it — matches this codebase's convention of one named
-> action per distinct mutation. `PATCH /users/{id}/role` is still untouched by any of this.
+> action per distinct mutation.
+>
+> **Role change (built):** mirrors the delete-confirmation pattern — a dedicated route,
+> `/admin/users/{id}/role` (`src/routes/admin/users/[id]/role/`), shows the target's current role
+> in a `<select>` (all 4 roles selectable, including promoting to `admin` — confirmed with the
+> human, same no-extra-restriction stance as the create form's role dropdown) with the submit
+> button disabled until a different role is chosen, then calls `PATCH /users/{id}/role` and
+> redirects back to `/admin/users/{id}`. **Self role-change is blocked** the same way as
+> self-delete: there's no backend guard against an admin changing their own role, so both `load`
+> and the `changeRole` action 403 on `id === locals.user.id`, and the "Role"/"Change role" links
+> are omitted from the admin's own row (list) and own edit page. Entry points: a "Role" action link
+> per non-self row on `/admin/users`, and a "Change role" link next to the (still read-only) role
+> badge on the edit page. Verified end-to-end against the real backend (role change + revert both
+> confirmed via the UI; invalid-role and same-role-no-op payloads handled cleanly server-side).
 
 | Step | Status | Blocked by |
 |---|:--:|---|
@@ -157,7 +180,7 @@ tags, audit logs, products — add specs there when those areas get e2e-worthy. 
 | Post edit (ownership rules) | ✅ | — |
 | Post delete | ✅ | — |
 | User management | ✅ | — |
-| Role change | ⬜ | — |
+| Role change | ✅ | — |
 | Audit log viewer | ⬜ | — |
 | Avatar option management | ⬜ | — |
 | Tag management (vocabulary CRUD — author/admin) | ⬜ | — |

@@ -70,10 +70,17 @@
 		<span class="help-text">Leave blank to keep the current password.</span>
 	</label>
 
-	<!-- Role is display-only here — changing it is a separate, dedicated admin step. -->
+	<!-- Role is display-only here — changing it is a separate, dedicated confirm-step admin route. -->
 	<div class="field">
 		<span class="label-text">Role</span>
-		<span class="role-badge">{data.targetUser.role}</span>
+		<div class="role-row">
+			<span class="role-badge">{data.targetUser.role}</span>
+			{#if !data.isSelf}
+				<a href={resolve('/admin/users/[id]/role', { id: String(data.targetUser.id) })}>
+					Change role
+				</a>
+			{/if}
+		</div>
 	</div>
 
 	<button type="submit" class="btn-primary" disabled={submitting}>
@@ -87,38 +94,41 @@
 		<span class="verify-status"
 			>{data.targetUser.isEmailVerified ? 'Verified' : 'Not verified'}</span
 		>
-		{#if data.targetUser.isEmailVerified}
-			<form
-				method="POST"
-				action="?/unverifyEmail"
-				use:enhance={() => {
-					verifying = true;
-					return async ({ update }) => {
-						verifying = false;
-						await update();
-					};
-				}}
-			>
-				<button type="submit" class="btn-secondary" disabled={verifying}>
-					{verifying ? 'Updating…' : 'Mark as unverified'}
-				</button>
-			</form>
-		{:else}
-			<form
-				method="POST"
-				action="?/verifyEmail"
-				use:enhance={() => {
-					verifying = true;
-					return async ({ update }) => {
-						verifying = false;
-						await update();
-					};
-				}}
-			>
-				<button type="submit" class="btn-secondary" disabled={verifying}>
-					{verifying ? 'Updating…' : 'Mark as verified'}
-				</button>
-			</form>
+		<!-- Toggle omitted for the signed-in admin's own account — see isSelf guard in +page.server.ts. -->
+		{#if !data.isSelf}
+			{#if data.targetUser.isEmailVerified}
+				<form
+					method="POST"
+					action="?/unverifyEmail"
+					use:enhance={() => {
+						verifying = true;
+						return async ({ update }) => {
+							verifying = false;
+							await update();
+						};
+					}}
+				>
+					<button type="submit" class="btn-secondary" disabled={verifying}>
+						{verifying ? 'Updating…' : 'Mark as unverified'}
+					</button>
+				</form>
+			{:else}
+				<form
+					method="POST"
+					action="?/verifyEmail"
+					use:enhance={() => {
+						verifying = true;
+						return async ({ update }) => {
+							verifying = false;
+							await update();
+						};
+					}}
+				>
+					<button type="submit" class="btn-secondary" disabled={verifying}>
+						{verifying ? 'Updating…' : 'Mark as verified'}
+					</button>
+				</form>
+			{/if}
 		{/if}
 	</div>
 </div>
@@ -239,6 +249,22 @@
 	.help-text {
 		font-size: 0.75rem;
 		color: var(--color-text-muted);
+	}
+
+	.role-row {
+		display: flex;
+		align-items: center;
+		gap: var(--space-3);
+	}
+
+	.role-row a {
+		color: var(--color-primary);
+		text-decoration: none;
+		font-size: var(--text-sm);
+	}
+
+	.role-row a:hover {
+		text-decoration: underline;
 	}
 
 	.role-badge {

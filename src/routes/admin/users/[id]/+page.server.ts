@@ -95,6 +95,14 @@ export const actions: Actions = {
 			error(404, 'User not found');
 		}
 
+		// There's no backend guard against an admin changing their own verified status — enforce it
+		// here (the template already omits the toggle for this row) so a direct action call can't
+		// let an admin accidentally lock themselves out of signing in (unverified email fails
+		// /auth/sign-in) with no other admin around to fix it.
+		if (id === locals.user!.id) {
+			error(403, 'You cannot change your own verification status.');
+		}
+
 		const client = serverApi(fetch, locals.accessToken);
 		const { error: patchError, response } = await client.PATCH('/users/{id}/verify-email', {
 			params: { path: { id } },
@@ -113,6 +121,11 @@ export const actions: Actions = {
 		const id = Number(params.id);
 		if (!Number.isInteger(id)) {
 			error(404, 'User not found');
+		}
+
+		// Same self-protection as verifyEmail above.
+		if (id === locals.user!.id) {
+			error(403, 'You cannot change your own verification status.');
 		}
 
 		const client = serverApi(fetch, locals.accessToken);

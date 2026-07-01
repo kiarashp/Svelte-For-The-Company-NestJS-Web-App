@@ -49,7 +49,13 @@
 									Edit
 								</a>
 								{#if !user.isSelf}
-									<!-- Delete handled by a dedicated route with confirmation — not inline. -->
+									<!-- Role change and delete each have a dedicated route with confirmation — not inline. -->
+									<a
+										href={resolve('/admin/users/[id]/role', { id: String(user.id) })}
+										class="action-link"
+									>
+										Role
+									</a>
 									<a
 										href={resolve('/admin/users/[id]/delete', { id: String(user.id) })}
 										class="action-link action-danger"
