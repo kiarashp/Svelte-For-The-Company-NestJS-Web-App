@@ -148,6 +148,13 @@ Two caveats remain:
   `filterableFields` the same way (a leftover generator artifact). Build the real payload
   (`description: string`, `images: string[]`, `specs: object`, `filterableFields:
   FilterableFieldDto[]`) and **cast** in the admin actions. Do **not** edit `openapi-types.ts`.
+  Also note `isPublished` is typed **required** on *both* product DTOs (only field without `?`) —
+  another generator quirk; an update payload must include it, or cast around it.
+- **`PATCH /product-types/{id}` is a constrained diff, not a free-form patch.** You must send the
+  **complete** `filterableFields` array; the backend diffs it and allows facets to be **added or
+  removed only** — an existing facet's `key`/`type` are immutable (change → `400`), and removing a
+  facet/option that products still use → `409`. Full rules + the facet-editor UI implications live
+  in `src/routes/admin/CLAUDE.md` → "Updating a saved product type".
 - The `GET /products` **spec filter** query is bracket-nested (`specs[key]=v` for enum/string,
   `specs[key][min]=…&specs[key][max]=…` for number ranges) and must be sent alongside a type context
   (`typeSlug` or `productTypeId`). `openapi-fetch`'s default serializer won't produce this shape — a

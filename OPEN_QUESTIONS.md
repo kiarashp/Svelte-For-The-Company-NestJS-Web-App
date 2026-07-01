@@ -10,6 +10,11 @@
 > Q11 (pagination — numbered pages). The role rules are now baked into the API `403` descriptions;
 > the authoritative permission matrix lives in `src/routes/admin/CLAUDE.md`.
 
+> **Reviewed 2026-07-01 (openapi resync):** the new `PATCH /product-types/{id}` constraints
+> (add/remove-only facets, immutable `key`/`type` → `400`, in-use removal → `409`, full-array diff)
+> are **fully specified by the backend** — no new open question. Captured in
+> `src/routes/admin/CLAUDE.md` → "Updating a saved product type" and Phase 6 of `STATE.md`.
+
 ---
 
 ## Page inventory — blocks all of Phase 3

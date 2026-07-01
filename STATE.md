@@ -3,7 +3,7 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-06-30_
+_Last updated: 2026-07-01_ (openapi resync: product-type update constraints captured)
 
 ---
 
@@ -73,14 +73,15 @@ _Last updated: 2026-06-30_
 
 ## Phase 4 — Admin CMS `PARTIALLY UNBLOCKED`
 
-> Admin gate, core post CRUD, and the tag / image / meta steps are all fully specified now — the
-> role rules are confirmed from the API `403` text (see `src/routes/admin/CLAUDE.md`). Only the two
-> inventory/treatment steps remain blocked on human page-inventory decisions.
+> Admin gate and post list are done. Remaining post CRUD and other steps are fully specified.
+> Role rules confirmed from API `403` text — **author can edit/delete any post** (same as admin;
+> editor limited to own posts only). See `src/routes/admin/CLAUDE.md` for the corrected matrix.
+> Only the two inventory/treatment steps remain blocked on human page-inventory decisions.
 
 | Step | Status | Blocked by |
 |---|:--:|---|
-| Admin layout guard (`+layout.server.ts`) | ⬜ | — |
-| Post list / dashboard | ⬜ | — |
+| Admin layout guard (`+layout.server.ts`) | ✅ | — |
+| Post list / dashboard | ✅ | — |
 | Post create | ⬜ | — |
 | Post edit (ownership rules) | ⬜ | — |
 | Post delete | ⬜ | — |
@@ -119,16 +120,19 @@ _Last updated: 2026-06-30_
 ## Phase 6 — Products (Admin CMS) `PARTIALLY UNBLOCKED`
 
 > Product writes are admin-only (explicit in the OpenAPI text). Read schemas are typed; **write DTOs
-> are mistyped** (`Record<string, never>` on JSON fields) so create/edit actions build + cast the
-> payload. Nothing here is blocked — pagination is numbered pages and the image endpoints are the
-> plural gallery (`/products/{id}/images`).
+> are mistyped** (`Record<string, never>` on JSON fields, plus `isPublished` typed required) so
+> create/edit actions build + cast the payload. Nothing here is blocked — pagination is numbered
+> pages and the image endpoints are the plural gallery (`/products/{id}/images`). **New constraint:**
+> `PATCH /product-types/{id}` is a diff, not a free patch — facets are add/remove only, `key`/`type`
+> immutable (`400`), in-use facet/option removal blocked (`409`); send the full field array. See
+> `src/routes/admin/CLAUDE.md` → "Updating a saved product type".
 
 | Step | Status | Blocked by |
 |---|:--:|---|
-| Admin product create/edit + dynamic specs form (cast write DTO) | ⬜ | — |
+| Admin product create/edit + dynamic specs form (cast write DTO; always send `isPublished`) | ⬜ | — |
 | Admin product image gallery (`GET/POST /products/{id}/images`, `DELETE …/{fileId}`) | ⬜ | — (multipart pattern known) |
 | Admin product delete (soft) | ⬜ | — |
 | Admin product-type list (bare array) | ⬜ | — |
-| Admin product-type create/edit + `filterableFields` facet editor (cast write DTO) | ⬜ | — |
+| Admin product-type create/edit + facet editor (add/remove-only on edit; lock `key`/`type`; full-array PATCH; handle `400`/`409`) | ⬜ | — |
 | Admin product-type delete (handle 409 — still referenced) | ⬜ | — |
 | Admin product list (`GET /products/admin`, incl. drafts, paginated) | ⬜ | — |

@@ -115,7 +115,7 @@ _"requires role: editor, author, admin; EDITOR limited to their own posts"_
 - `GET /products/admin` — full list **including drafts** (the admin product list source); same paginated envelope
 - `GET /products/slug/{slug}`, `GET /products/{id}` — single product
 - `POST /products` — create (admin); `409` on duplicate slug or SKU
-- `PATCH /products/{id}` — update (admin)
+- `PATCH /products/{id}` — update (admin); `409` on duplicate slug or SKU (same as create)
 - `DELETE /products/{id}` — soft-delete (admin)
 - `GET /products/{id}/images` / `POST /products/{id}/images` — list/upload product images (admin),
   **multipart** — gallery, same handling as post images
@@ -124,8 +124,29 @@ _"requires role: editor, author, admin; EDITOR limited to their own posts"_
 ### Product types (writes admin-only; reads public; list is a **bare array**)
 - `GET /product-types` — **not paginated**: `data` is a plain `ProductType[]`. Each type carries `productCount` (published-product count) and its `filterableFields`.
 - `GET /product-types/slug/{slug}`, `GET /product-types/{id}` — single type
-- `POST /product-types`, `PATCH /product-types/{id}` — create / update (admin)
+- `POST /product-types` — create (admin); `409` on duplicate name or slug
+- `PATCH /product-types/{id}` — update (admin). **Constrained** — see "Updating a saved product type" below. `400` on an illegal facet change; `409` on duplicate name/slug **or** a blocked facet/option removal.
 - `DELETE /product-types/{id}` — delete (admin); `409` if products still reference the type
+
+#### Updating a saved product type (critical — the API enforces this)
+
+`PATCH /product-types/{id}` is **not** a free-form edit. The backend diffs the `filterableFields`
+array you send against what's stored and rejects illegal changes:
+
+- **Send the complete field list**, always. The patch replaces the whole `filterableFields` array
+  (it is diffed, not merged) — omitting a facet means "remove it", not "leave it untouched".
+- **Facets are add/remove only.** You may add new facets or drop existing ones, but an existing
+  facet's **`key` and `type` are immutable**. Changing either → **`400`** *"Illegal field change"*.
+  (`label`, `unit`, and an enum's `options` list can still be edited on an existing facet.)
+- **Removal is blocked while in use.** Removing a facet — or removing an `option` from an enum
+  facet — returns **`409`** if any product still references that field/option. `name`/`slug`
+  duplicates also surface as `409`; distinguish by the response message.
+- **`name` and `slug` are freely editable** (subject to the uniqueness `409`).
+
+Facet-editor UI must therefore, **on edit** (not create): lock `key` and `type` on existing rows,
+allow editing `label`/`unit`/`options` and adding/removing whole rows, always submit the full
+array, and surface `400`/`409` (especially "removal blocked because products use it") back to the
+user instead of silently failing.
 
 ---
 
@@ -177,7 +198,11 @@ their drafts + review; admin sees all).
 
 - **Facet editor** (product-type create/edit): edit `filterableFields` as repeatable rows
   (`key`, `label`, `type`, `unit?`, `options?`). This is what defines a type's filters and the spec
-  keys its products may use.
+  keys its products may use. **On create** all fields are editable. **On edit** the backend locks
+  existing facets to add/remove only — `key` and `type` become immutable (changing them → `400`),
+  and removing a facet/option that products still use → `409`. Reflect this in the UI: disable
+  `key`/`type` inputs on rows that already exist, keep `label`/`unit`/`options` editable, and always
+  POST the complete field array. See "Updating a saved product type" above.
 - **Dynamic specs form** (product create/edit): after the type is chosen, render one input per
   facet from that type's `filterableFields` (number input for `number`, select for `enum`, etc.) and
   collect them into the `specs` object. Don't hardcode spec fields — derive them from the type.

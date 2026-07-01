@@ -30,6 +30,7 @@ export interface paths {
         /** Get all users with pagination and limit */
         get: operations["UsersController_getAllUsers"];
         put?: never;
+        /** Register a new user */
         post: operations["UsersController_createUser"];
         delete?: never;
         options?: never;
@@ -201,6 +202,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** List published posts */
         get: operations["PostsController_findAll"];
         put?: never;
         /** Create a new post */
@@ -218,6 +220,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get a published post by slug */
         get: operations["PostsController_findBySlug"];
         put?: never;
         post?: never;
@@ -268,6 +271,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
+        /** Get a published post by ID */
         get: operations["PostsController_findOne"];
         put?: never;
         post?: never;
@@ -729,7 +733,7 @@ export interface paths {
         delete: operations["ProductTypesController_delete"];
         options?: never;
         head?: never;
-        /** Update a product type (admin only) */
+        /** Update a product type (admin only). Fields are add/remove only; key and type are immutable; send the complete field list. */
         patch: operations["ProductTypesController_update"];
         trace?: never;
     };
@@ -1376,7 +1380,7 @@ export interface components {
              *       }
              *     ]
              */
-            filterableFields?: Record<string, never>;
+            filterableFields?: components["schemas"]["FilterableFieldDto"][] | null;
         };
         UpdateProductTypeDto: {
             /**
@@ -1409,7 +1413,7 @@ export interface components {
              *       }
              *     ]
              */
-            filterableFields?: Record<string, never>;
+            filterableFields?: components["schemas"]["FilterableFieldDto"][] | null;
         };
     };
     responses: never;
@@ -2077,6 +2081,10 @@ export interface operations {
                 limit?: number;
                 /** @description Page number to return (1-based) */
                 page?: number;
+                /** @description Filter by entity type — exact match */
+                entity?: string;
+                /** @description Filter by action — exact match */
+                action?: "CREATE" | "UPDATE" | "DELETE" | "SOFT_DELETE";
             };
             header?: never;
             path?: never;
@@ -2131,6 +2139,16 @@ export interface operations {
     PostsController_findAll: {
         parameters: {
             query?: {
+                /** @description ISO 8601 — filter posts created on or after this date */
+                startDate?: string;
+                /** @description ISO 8601 — filter posts created on or before this date */
+                endDate?: string;
+                /** @description Filter by post status — used by /posts/my and /posts/admin */
+                status?: "draft" | "scheduled" | "review" | "published";
+                /** @description Filter by tag IDs — OR logic, returns posts matching any listed tag */
+                tagIds?: number[];
+                /** @description Filter by author user ID */
+                authorId?: number;
                 /** @description Keyword search across title and content */
                 q?: string;
                 /** @description Number of items per page */
@@ -2242,6 +2260,16 @@ export interface operations {
     PostsController_findMyPosts: {
         parameters: {
             query?: {
+                /** @description ISO 8601 — filter posts created on or after this date */
+                startDate?: string;
+                /** @description ISO 8601 — filter posts created on or before this date */
+                endDate?: string;
+                /** @description Filter by post status — used by /posts/my and /posts/admin */
+                status?: "draft" | "scheduled" | "review" | "published";
+                /** @description Filter by tag IDs — OR logic, returns posts matching any listed tag */
+                tagIds?: number[];
+                /** @description Filter by author user ID */
+                authorId?: number;
                 /** @description Keyword search across title and content */
                 q?: string;
                 /** @description Number of items per page */
@@ -2295,6 +2323,16 @@ export interface operations {
     PostsController_findAllAdmin: {
         parameters: {
             query?: {
+                /** @description ISO 8601 — filter posts created on or after this date */
+                startDate?: string;
+                /** @description ISO 8601 — filter posts created on or before this date */
+                endDate?: string;
+                /** @description Filter by post status — used by /posts/my and /posts/admin */
+                status?: "draft" | "scheduled" | "review" | "published";
+                /** @description Filter by tag IDs — OR logic, returns posts matching any listed tag */
+                tagIds?: number[];
+                /** @description Filter by author user ID */
+                authorId?: number;
                 /** @description Keyword search across title and content */
                 q?: string;
                 /** @description Number of items per page */
@@ -3950,6 +3988,13 @@ export interface operations {
                     };
                 };
             };
+            /** @description Illegal field change (a field's key or type cannot be changed) */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
             /** @description Unauthorized — missing or invalid access token */
             401: {
                 headers: {
@@ -3964,7 +4009,7 @@ export interface operations {
                 };
                 content?: never;
             };
-            /** @description Name or slug already in use */
+            /** @description Name or slug already in use, or a field/option removal is blocked because products still use it */
             409: {
                 headers: {
                     [name: string]: unknown;
