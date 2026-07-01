@@ -67,13 +67,23 @@ export function serverApi(fetchFn: typeof fetch, accessToken?: string | null) {
 - In `hooks.server.ts` → raw `fetch` with manual Bearer header (before locals are set).
 - In `.svelte` components / client code → `api` singleton (public/unauthenticated endpoints only).
 - Never call `fetch` against the backend directly. Always go through these.
+- **Always check `error` / `response.ok`, never destructure only `data`.** A failed request
+  (400/401/403/500) still resolves without throwing — `data` is simply `undefined`, which looks
+  identical to "the list is genuinely empty." The admin post list shipped with this bug: it read
+  only `data`, so a backend `400` on `GET /posts/admin` silently rendered "No posts found" instead
+  of surfacing the real error. Every `load`/action that reads `data` from a typed client call must
+  branch on `error`/`response.ok` first and surface a message (via returned `loadError` in `load`,
+  or `fail()` in an action) — don't let a failed fetch look like an empty result.
 
 ```ts
 // example, authenticated server load
 export const load: PageServerLoad = async ({ fetch, locals }) => {
   const client = serverApi(fetch, locals.accessToken);
-  const { data, error } = await client.GET('/posts/my');
-  return { posts: data };
+  const { data, error, response } = await client.GET('/posts/my');
+  if (error || !response.ok) {
+    return { posts: [], loadError: `Could not load posts (${response.status}).` };
+  }
+  return { posts: data?.data?.data ?? [], loadError: null };
 };
 ```
 

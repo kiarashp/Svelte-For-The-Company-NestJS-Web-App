@@ -162,6 +162,21 @@ user instead of silently failing.
 - `content` is the **Markdown** body; `schema` is a serialized JSON string for structured meta.
 - `featuredImage` is a URL string. Additional images go through `POST /posts/{id}/images`.
 
+### Post create v1 — fields intentionally deferred
+
+The Post create form (`/admin/posts/new`) deliberately omits three `CreatePostDto` fields — this
+was a scope decision, not an oversight, so Post edit shouldn't assume they were missed:
+
+- **`publishOn`** — no backend automation flips `scheduled` → `published` at that time yet, so a
+  date picker for it would control nothing.
+- **`featuredImage`** — a bare URL field has no legitimate value source before the post has an id
+  (no upload flow yet; that's the separate "Image upload" step in `STATE.md`).
+- **`schema`** — unused anywhere in the app, and not editable again after creation.
+
+Because `publishOn` is deferred, the create form's status dropdown also **excludes `scheduled`**
+(offering it without a publish date would create posts stuck in limbo) — options are
+`draft | review | published`, defaulting to `draft`.
+
 ### Status workflow (UI guidance)
 
 - `draft` → editable, not public.

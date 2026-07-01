@@ -80,7 +80,9 @@
 	<button type="submit" class="btn-secondary">Filter</button>
 </form>
 
-{#if data.posts.length === 0}
+{#if data.loadError}
+	<p class="error" role="alert">{data.loadError}</p>
+{:else if data.posts.length === 0}
 	<p class="empty-state">No posts found.</p>
 {:else}
 	<div class="table-wrapper">
@@ -116,23 +118,25 @@
 						</td>
 						<td class="date-cell">{formatDate(post.createdAt)}</td>
 						<td class="actions-cell">
-							{#if post.canEdit}
-								<a
-									href={resolve('/admin/posts/[id]/edit', { id: String(post.id) })}
-									class="action-link"
-								>
-									Edit
-								</a>
-							{/if}
-							{#if post.canDelete}
-								<!-- Delete handled by a dedicated route with confirmation — not inline. -->
-								<a
-									href={resolve('/admin/posts/[id]/delete', { id: String(post.id) })}
-									class="action-link action-danger"
-								>
-									Delete
-								</a>
-							{/if}
+							<div class="actions-inner">
+								{#if post.canEdit}
+									<a
+										href={resolve('/admin/posts/[id]/edit', { id: String(post.id) })}
+										class="action-link"
+									>
+										Edit
+									</a>
+								{/if}
+								{#if post.canDelete}
+									<!-- Delete handled by a dedicated route with confirmation — not inline. -->
+									<a
+										href={resolve('/admin/posts/[id]/delete', { id: String(post.id) })}
+										class="action-link action-danger"
+									>
+										Delete
+									</a>
+								{/if}
+							</div>
 						</td>
 					</tr>
 				{/each}
@@ -302,7 +306,8 @@
 		width: 120px;
 	}
 
-	.actions-cell {
+	/* keep <td> as table-cell — a flex display here breaks table row layout in browsers */
+	.actions-inner {
 		display: flex;
 		gap: var(--space-3);
 		align-items: center;
@@ -328,6 +333,16 @@
 		color: var(--color-text-muted);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-md);
+	}
+
+	.error {
+		margin: 0;
+		padding: var(--space-3) var(--space-4);
+		border: 1px solid var(--color-danger);
+		border-left-width: 4px;
+		border-radius: var(--radius-sm);
+		color: var(--color-danger);
+		font-size: var(--text-sm);
 	}
 
 	.pagination {

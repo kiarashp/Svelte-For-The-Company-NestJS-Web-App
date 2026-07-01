@@ -3,7 +3,7 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-07-01_ (openapi resync: product-type update constraints captured)
+_Last updated: 2026-07-01_ (Post create built; post list bug fix — see Phase 4 notes)
 
 ---
 
@@ -73,16 +73,30 @@ _Last updated: 2026-07-01_ (openapi resync: product-type update constraints capt
 
 ## Phase 4 — Admin CMS `PARTIALLY UNBLOCKED`
 
-> Admin gate and post list are done. Remaining post CRUD and other steps are fully specified.
-> Role rules confirmed from API `403` text — **author can edit/delete any post** (same as admin;
-> editor limited to own posts only). See `src/routes/admin/CLAUDE.md` for the corrected matrix.
-> Only the two inventory/treatment steps remain blocked on human page-inventory decisions.
+> Admin gate, post list, and post create are done. Remaining post CRUD and other steps are fully
+> specified. Role rules confirmed from API `403` text — **author can edit/delete any post** (same
+> as admin; editor limited to own posts only). See `src/routes/admin/CLAUDE.md` for the corrected
+> matrix. Only the two inventory/treatment steps remain blocked on human page-inventory decisions.
+>
+> **Post create v1 scope:** intentionally excludes `publishOn`, `featuredImage`, and `schema`
+> (and therefore the `scheduled` status option) — see `src/routes/admin/CLAUDE.md` → "Post create
+> v1 — fields intentionally deferred" for the reasoning. **Post edit is the practical next step**:
+> a created draft currently has no page to attach images to (no upload flow exists without an edit
+> page), so featuredImage/gallery upload should likely land alongside it.
+>
+> **Bug fixed in the post list load** (`src/routes/admin/posts/+page.server.ts`): it read only
+> `data` from the typed client call and ignored `error`/`response.ok`, so a failed fetch (hit
+> during Post create testing — a backend `400` on `GET /posts/admin`) silently rendered "No posts
+> found" instead of surfacing the real error. Now returns `loadError` and the template shows it.
+> The underlying `400` itself was a backend query-validation issue (now fixed backend-side) — see
+> `src/CLAUDE.md` → API client rules for the "always check `error`/`response.ok`" convention this
+> introduced, which should be followed in every new `load`/action from here on.
 
 | Step | Status | Blocked by |
 |---|:--:|---|
 | Admin layout guard (`+layout.server.ts`) | ✅ | — |
 | Post list / dashboard | ✅ | — |
-| Post create | ⬜ | — |
+| Post create | ✅ | — |
 | Post edit (ownership rules) | ⬜ | — |
 | Post delete | ⬜ | — |
 | User management | ⬜ | — |
