@@ -85,4 +85,57 @@ test.describe('admin role', () => {
 		const updatedRow = await goToUserRowByEmail(page, email);
 		await expect(updatedRow.getByText('After')).toBeVisible();
 	});
+
+	test('admin creates a user with a chosen role', async ({ page }) => {
+		const email = `e2e-admin-create-${Date.now()}@example.com`;
+
+		await page.goto('/admin/users/new');
+		await page.locator('input[name="firstName"]').fill('Created');
+		await page.locator('input[name="email"]').fill(email);
+		await page.locator('input[name="password"]').fill('TestPass123!');
+		await page.locator('input[name="confirmPassword"]').fill('TestPass123!');
+		await page.locator('select[name="role"]').selectOption('editor');
+		await Promise.all([
+			page.waitForResponse((r) => r.url().includes('?/create')),
+			page.getByRole('button', { name: 'Create user' }).click()
+		]);
+
+		await expect(page).toHaveURL('/admin/users');
+		const row = await goToUserRowByEmail(page, email);
+		await expect(row.getByText('editor', { exact: true })).toBeVisible();
+	});
+
+	test("admin toggles a user's email-verified status", async ({ page }) => {
+		// POST /users/admin (used here instead of /register) leaves isEmailVerified false by
+		// default when the checkbox is left unchecked, matching the self-registration flow.
+		const email = `e2e-admin-verify-${Date.now()}@example.com`;
+		await page.goto('/admin/users/new');
+		await page.locator('input[name="firstName"]').fill('Unverified');
+		await page.locator('input[name="email"]').fill(email);
+		await page.locator('input[name="password"]').fill('TestPass123!');
+		await page.locator('input[name="confirmPassword"]').fill('TestPass123!');
+		await Promise.all([
+			page.waitForResponse((r) => r.url().includes('?/create')),
+			page.getByRole('button', { name: 'Create user' }).click()
+		]);
+		await expect(page).toHaveURL('/admin/users');
+
+		const row = await goToUserRowByEmail(page, email);
+		await row.getByRole('link', { name: 'Edit' }).click();
+		await expect(page.getByRole('heading', { name: 'Edit user' })).toBeVisible();
+		await expect(page.getByText('Not verified')).toBeVisible();
+
+		await Promise.all([
+			page.waitForResponse((r) => r.url().includes('?/verifyEmail')),
+			page.getByRole('button', { name: 'Mark as verified' }).click()
+		]);
+		await expect(page.getByText('Not verified')).toHaveCount(0);
+		await expect(page.getByText('Verified', { exact: true })).toBeVisible();
+
+		await Promise.all([
+			page.waitForResponse((r) => r.url().includes('?/unverifyEmail')),
+			page.getByRole('button', { name: 'Mark as unverified' }).click()
+		]);
+		await expect(page.getByText('Not verified')).toBeVisible();
+	});
 });

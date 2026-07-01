@@ -55,6 +55,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/users/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Create a user with a chosen role and verified status (admin only) */
+        post: operations["UsersController_createUserAsAdmin"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/users/me": {
         parameters: {
             query?: never;
@@ -176,6 +193,23 @@ export interface paths {
         head?: never;
         /** Change a user's role (admin only) */
         patch: operations["UsersController_changeUserRole"];
+        trace?: never;
+    };
+    "/users/{id}/verify-email": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Set a user's email verification status (admin only) */
+        patch: operations["UsersController_setEmailVerified"];
         trace?: never;
     };
     "/audit-logs": {
@@ -802,6 +836,35 @@ export interface components {
         CreateManyUsersDto: {
             users: components["schemas"]["CreateUserDto"][];
         };
+        AdminCreateUserDto: {
+            /**
+             * @description User first name
+             * @example Ichigo
+             */
+            firstName: string;
+            /**
+             * @description User last name
+             * @example Kurosaki
+             */
+            lastName?: string;
+            /**
+             * @description User email
+             * @example ichigo@bleach.com
+             */
+            email: string;
+            /**
+             * @description User password and must contain Minimum eight characters, at least one uppercase letter, one lowercase letter, one number and one special character
+             * @example qwer!@QWER123
+             */
+            password: string;
+            /**
+             * @default user
+             * @enum {string}
+             */
+            role: "user" | "editor" | "author" | "admin";
+            /** @default false */
+            isEmailVerified: boolean;
+        };
         AvatarOption: {
             /** @example 1 */
             id: number;
@@ -856,6 +919,10 @@ export interface components {
         ChangeUserRoleDto: {
             /** @enum {string} */
             role: "user" | "editor" | "author" | "admin";
+        };
+        SetEmailVerifiedDto: {
+            /** @example true */
+            isEmailVerified: boolean;
         };
         PatchUserDto: {
             /**
@@ -1686,6 +1753,47 @@ export interface operations {
             };
         };
     };
+    UsersController_createUserAsAdmin: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AdminCreateUserDto"];
+            };
+        };
+        responses: {
+            /** @description User created */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
     UsersController_getMe: {
         parameters: {
             query?: never;
@@ -2064,6 +2172,49 @@ export interface operations {
         };
         responses: {
             /** @description Role updated */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["AdminUser"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: admin */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    UsersController_setEmailVerified: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SetEmailVerifiedDto"];
+            };
+        };
+        responses: {
+            /** @description Email verification status updated */
             200: {
                 headers: {
                     [name: string]: unknown;

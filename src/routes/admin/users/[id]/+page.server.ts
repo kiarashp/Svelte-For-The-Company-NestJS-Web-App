@@ -84,5 +84,48 @@ export const actions: Actions = {
 		}
 
 		redirect(303, '/admin/users');
+	},
+
+	// Separate from `update` — PATCH /users/{id}/verify-email is its own endpoint/DTO (and clears
+	// any outstanding verification token when set true), so it gets its own fixed-payload action
+	// rather than being folded into the profile-fields form.
+	verifyEmail: async ({ params, fetch, locals }) => {
+		const id = Number(params.id);
+		if (!Number.isInteger(id)) {
+			error(404, 'User not found');
+		}
+
+		const client = serverApi(fetch, locals.accessToken);
+		const { error: patchError, response } = await client.PATCH('/users/{id}/verify-email', {
+			params: { path: { id } },
+			body: { isEmailVerified: true }
+		});
+
+		if (patchError || !response.ok) {
+			const message = extractMessage(patchError) ?? 'Failed to update verification status.';
+			return fail(response.status || 400, { message });
+		}
+
+		redirect(303, `/admin/users/${id}`);
+	},
+
+	unverifyEmail: async ({ params, fetch, locals }) => {
+		const id = Number(params.id);
+		if (!Number.isInteger(id)) {
+			error(404, 'User not found');
+		}
+
+		const client = serverApi(fetch, locals.accessToken);
+		const { error: patchError, response } = await client.PATCH('/users/{id}/verify-email', {
+			params: { path: { id } },
+			body: { isEmailVerified: false }
+		});
+
+		if (patchError || !response.ok) {
+			const message = extractMessage(patchError) ?? 'Failed to update verification status.';
+			return fail(response.status || 400, { message });
+		}
+
+		redirect(303, `/admin/users/${id}`);
 	}
 };

@@ -1,30 +1,38 @@
 <script lang="ts">
 	import { enhance } from '$app/forms';
 	import { resolve } from '$app/paths';
-	import type { PageData, ActionData } from './$types';
+	import type { ActionData } from './$types';
 
 	interface Props {
-		data: PageData;
 		form: ActionData;
 	}
-	let { data, form }: Props = $props();
+	let { form }: Props = $props();
 
 	let submitting = $state(false);
-	let verifying = $state(false);
+	let password = $state('');
+
+	// Re-evaluated whenever `password` changes — drives the rule checklist (same rules as /register).
+	let rules = $derived([
+		{ label: '8+ characters', ok: password.length >= 8 },
+		{ label: 'Uppercase', ok: /[A-Z]/.test(password) },
+		{ label: 'Lowercase', ok: /[a-z]/.test(password) },
+		{ label: 'Number', ok: /[0-9]/.test(password) },
+		{ label: 'Symbol', ok: /[^A-Za-z0-9]/.test(password) }
+	]);
 </script>
 
 <svelte:head>
-	<title>Admin — Edit User</title>
+	<title>Admin — New User</title>
 </svelte:head>
 
 <div class="page-header">
-	<h1 class="page-title">Edit user</h1>
+	<h1 class="page-title">New user</h1>
 	<a href={resolve('/admin/users')} class="btn-secondary">Cancel</a>
 </div>
 
 <form
 	method="POST"
-	action="?/update"
+	action="?/create"
 	class="user-form"
 	use:enhance={() => {
 		submitting = true;
@@ -40,96 +48,66 @@
 
 	<label class="field">
 		<span class="label-text">First name</span>
-		<input
-			type="text"
-			name="firstName"
-			required
-			disabled={submitting}
-			value={data.targetUser.firstName}
-		/>
+		<input type="text" name="firstName" required disabled={submitting} />
 	</label>
 
 	<label class="field">
 		<span class="label-text">Last name</span>
-		<input
-			type="text"
-			name="lastName"
-			disabled={submitting}
-			value={data.targetUser.lastName ?? ''}
-		/>
+		<input type="text" name="lastName" disabled={submitting} />
 	</label>
 
 	<label class="field">
 		<span class="label-text">Email</span>
-		<input type="email" name="email" required disabled={submitting} value={data.targetUser.email} />
+		<input type="email" name="email" required disabled={submitting} />
 	</label>
 
 	<label class="field">
-		<span class="label-text">New password</span>
-		<input type="password" name="password" disabled={submitting} autocomplete="new-password" />
-		<span class="help-text">Leave blank to keep the current password.</span>
+		<span class="label-text">Password</span>
+		<input
+			type="password"
+			name="password"
+			required
+			autocomplete="new-password"
+			disabled={submitting}
+			bind:value={password}
+		/>
+		<ul class="rules" aria-label="Password requirements">
+			{#each rules as rule (rule.label)}
+				<li class:ok={rule.ok}>{rule.label}</li>
+			{/each}
+		</ul>
 	</label>
 
-	<!-- Role is display-only here — changing it is a separate, dedicated admin step. -->
-	<div class="field">
+	<label class="field">
+		<span class="label-text">Confirm password</span>
+		<input
+			type="password"
+			name="confirmPassword"
+			required
+			autocomplete="new-password"
+			disabled={submitting}
+		/>
+	</label>
+
+	<label class="field">
 		<span class="label-text">Role</span>
-		<span class="role-badge">{data.targetUser.role}</span>
-	</div>
+		<select name="role" disabled={submitting}>
+			<option value="user" selected>User</option>
+			<option value="editor">Editor</option>
+			<option value="author">Author</option>
+			<option value="admin">Admin</option>
+		</select>
+	</label>
+
+	<label class="checkbox-field">
+		<input type="checkbox" name="isEmailVerified" disabled={submitting} />
+		Mark email as verified (skips the verification email)
+	</label>
 
 	<button type="submit" class="btn-primary" disabled={submitting}>
-		{submitting ? 'Saving…' : 'Save changes'}
+		{submitting ? 'Creating…' : 'Create user'}
 	</button>
 </form>
-
-<div class="verify-section">
-	<span class="label-text">Email verification</span>
-	<div class="verify-row">
-		<span class="verify-status"
-			>{data.targetUser.isEmailVerified ? 'Verified' : 'Not verified'}</span
-		>
-		{#if data.targetUser.isEmailVerified}
-			<form
-				method="POST"
-				action="?/unverifyEmail"
-				use:enhance={() => {
-					verifying = true;
-					return async ({ update }) => {
-						verifying = false;
-						await update();
-					};
-				}}
-			>
-				<button type="submit" class="btn-secondary" disabled={verifying}>
-					{verifying ? 'Updating…' : 'Mark as unverified'}
-				</button>
-			</form>
-		{:else}
-			<form
-				method="POST"
-				action="?/verifyEmail"
-				use:enhance={() => {
-					verifying = true;
-					return async ({ update }) => {
-						verifying = false;
-						await update();
-					};
-				}}
-			>
-				<button type="submit" class="btn-secondary" disabled={verifying}>
-					{verifying ? 'Updating…' : 'Mark as verified'}
-				</button>
-			</form>
-		{/if}
-	</div>
-</div>
-
-{#if !data.isSelf}
-	<p class="delete-link">
-		<a href={resolve('/admin/users/[id]/delete', { id: String(data.targetUser.id) })}>
-			Delete this user
-		</a>
-	</p>
-{/if}
 
 <style>
 	.page-header {
@@ -216,7 +194,8 @@
 
 	input[type='text'],
 	input[type='email'],
-	input[type='password'] {
+	input[type='password'],
+	select {
 		padding: var(--space-2) var(--space-3);
 		border: 1px solid var(--color-border);
 		border-radius: var(--radius-sm);
@@ -226,62 +205,38 @@
 		font-size: var(--text-sm);
 	}
 
-	input:focus-visible {
+	input:focus-visible,
+	select:focus-visible {
 		outline: 2px solid var(--color-focus-ring);
 		outline-offset: 2px;
 	}
 
-	input:disabled {
+	input:disabled,
+	select:disabled {
 		opacity: 0.6;
 		cursor: not-allowed;
 	}
 
-	.help-text {
-		font-size: 0.75rem;
-		color: var(--color-text-muted);
-	}
-
-	.role-badge {
-		display: inline-block;
-		align-self: flex-start;
-		padding: 2px var(--space-2);
-		border-radius: var(--radius-full);
-		background: var(--color-surface-alt);
-		color: var(--color-text-muted);
-		font-size: 0.75rem;
-		text-transform: capitalize;
-	}
-
-	.verify-section {
-		display: flex;
-		flex-direction: column;
-		gap: var(--space-2);
-		margin-top: var(--space-6);
-		max-width: 480px;
-	}
-
-	.verify-row {
+	.checkbox-field {
 		display: flex;
 		align-items: center;
-		gap: var(--space-3);
-	}
-
-	.verify-status {
+		gap: var(--space-2);
 		font-size: var(--text-sm);
 		color: var(--color-text);
 	}
 
-	.btn-secondary:disabled {
-		opacity: 0.6;
-		cursor: not-allowed;
+	.rules {
+		display: flex;
+		flex-wrap: wrap;
+		gap: var(--space-2) var(--space-4);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		font-size: 0.75rem;
+		color: var(--color-text-muted);
 	}
 
-	.delete-link {
-		margin-top: var(--space-6);
-		font-size: var(--text-sm);
-	}
-
-	.delete-link a {
-		color: var(--color-danger);
+	.rules li.ok {
+		color: var(--color-success);
 	}
 </style>

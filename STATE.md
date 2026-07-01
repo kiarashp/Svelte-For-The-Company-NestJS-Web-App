@@ -3,9 +3,9 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-07-02_ (User management — list/view/edit/delete — built; post create + post
-edit + post delete built; post list bug fix — see Phase 4 notes; Playwright e2e testing infra
-added — see "Testing infrastructure" below)
+_Last updated: 2026-07-02_ (User management — list/view/edit/delete + admin-create-user +
+email-verified toggle — built; post create + post edit + post delete built; post list bug fix —
+see Phase 4 notes; Playwright e2e testing infra added — see "Testing infrastructure" below)
 
 ---
 
@@ -32,12 +32,13 @@ staff → through), `tests/admin-posts.spec.ts` (post list loads without the `.d
 `tests/admin-posts-delete.spec.ts` (admin deletes their own post and it disappears from the list;
 editor gets the backend's `403` navigating directly to another author's delete route — the
 ownership rule), `tests/admin-users.spec.ts` (guest/author/editor gates on the admin-only
-`/admin/users` narrowing, list loads without a `loadError`, admin edits a user's first name), and
-`tests/admin-users-delete.spec.ts` (admin deletes a non-self user; the admin's own row omits the
-delete link and direct navigation to its delete route gets the server's `403`). All 22 specs pass
-as of this writing. Not covered yet: tags, audit logs, products — add specs there when those areas
-get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not installed — see root
-`CLAUDE.md` → "Testing" for why.
+`/admin/users` narrowing, list loads without a `loadError`, admin edits a user's first name, admin
+creates a user with a chosen role via `/admin/users/new`, admin toggles a user's email-verified
+status via the edit page's separate verify/unverify action), and `tests/admin-users-delete.spec.ts`
+(admin deletes a non-self user; the admin's own row omits the delete link and direct navigation to
+its delete route gets the server's `403`). All 24 specs pass as of this writing. Not covered yet:
+tags, audit logs, products — add specs there when those areas get e2e-worthy. Run with
+`pnpm test:e2e`. Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for why.
 
 > Two test-writing gotchas surfaced while building the user-management specs (`browser.newContext()`
 > silently inheriting the enclosing `storageState`; an SSR-hydration race that can clobber
@@ -128,12 +129,25 @@ get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not installed 
 > **User management scope (confirmed with the human):** list + view/edit + delete of existing
 > users at `/admin/users` (admin-only — see `src/routes/admin/users/+layout.server.ts`, which
 > narrows the shared staff gate). **Role change is a deliberately separate, later step** — role is
-> shown read-only everywhere here, no dropdown, `PATCH /users/{id}/role` is untouched. The edit form
-> includes an optional password-reset field (blank = unchanged). There is no admin "create user"
-> flow — registration already covers that. **Self-delete is blocked**: the signed-in admin's own row
-> has no delete link, and direct navigation to `/admin/users/{ownId}/delete` gets a server-side
-> `403` (there's no backend guard against it, so the frontend enforces it). `GET /users` has no
-> search/filter query param — only `page`/`limit` — so the list is pagination-only, no search box.
+> shown read-only on the edit page, no dropdown, `PATCH /users/{id}/role` is untouched. The edit
+> form includes an optional password-reset field (blank = unchanged). **Self-delete is blocked**:
+> the signed-in admin's own row has no delete link, and direct navigation to
+> `/admin/users/{ownId}/delete` gets a server-side `403` (there's no backend guard against it, so
+> the frontend enforces it). `GET /users` has no search/filter query param — only `page`/`limit` —
+> so the list is pagination-only, no search box.
+>
+> **Admin-create-user + email-verified toggle (added once the backend shipped the endpoints):** the
+> backend added `POST /users/admin` (create with an explicit `role` and `isEmailVerified`, admin
+> only) and `PATCH /users/{id}/verify-email` (toggle verified status, clearing any outstanding
+> token when set `true`) — both are now wired up. `/admin/users/new` is the admin "create user"
+> flow (superseding the earlier "no admin create-user flow, registration already covers that" note
+> — it now exists specifically because this endpoint lets an admin set role and skip email
+> verification, which self-registration can't do); its role `<select>` intentionally allows **all
+> four roles including `admin`** (confirmed with the human — no extra restriction beyond the
+> section's existing admin-only gate). The edit page's verified-status toggle is a **separate
+> action** (`verifyEmail`/`unverifyEmail`, each posting a fixed boolean) from the main "Save
+> changes" form, not a checkbox folded into it — matches this codebase's convention of one named
+> action per distinct mutation. `PATCH /users/{id}/role` is still untouched by any of this.
 
 | Step | Status | Blocked by |
 |---|:--:|---|

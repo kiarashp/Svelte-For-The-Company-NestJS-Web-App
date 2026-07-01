@@ -14,6 +14,7 @@
 
 <div class="page-header">
 	<h1 class="page-title">Users</h1>
+	<a href={resolve('/admin/users/new')} class="btn-primary">New user</a>
 </div>
 
 {#if data.loadError}
@@ -93,6 +94,22 @@
 		font-size: var(--text-2xl);
 		font-weight: 700;
 		color: var(--color-text);
+	}
+
+	.btn-primary {
+		display: inline-block;
+		padding: var(--space-2) var(--space-4);
+		border-radius: var(--radius-sm);
+		background: var(--color-primary);
+		color: var(--color-on-primary);
+		text-decoration: none;
+		font-size: var(--text-sm);
+		font-weight: 500;
+		transition: background var(--duration-fast) var(--ease-out);
+	}
+
+	.btn-primary:hover {
+		background: var(--color-primary-hover);
 	}
 
 	.table-wrapper {

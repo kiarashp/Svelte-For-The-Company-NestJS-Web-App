@@ -107,11 +107,27 @@ _"requires role: editor, author, admin; EDITOR limited to their own posts"_
 ### Users (admin)
 - `GET /users` (paginated: `?page&limit` **only** — no search/filter query param exists; the
   `/admin/users` list is pagination-only, no search box)
-- `POST /users`, `POST /users/create-many`
+- `POST /users`, `POST /users/create-many` — the plain self-registration create; `create-many` is
+  unused by the frontend
+- `POST /users/admin` — **admin-create-user, now wired up** at `/admin/users/new`
+  (`src/routes/admin/users/new/`). `AdminCreateUserDto` adds `role` (all 4 roles, admin included —
+  confirmed with the human, no extra restriction here beyond the section's admin-only gate) and
+  `isEmailVerified` (default `false` → sends the normal verification email, same as
+  self-registration; `true` skips it) on top of the plain `firstName`/`lastName?`/`email`/
+  `password` fields. This is *why* an admin-create-user flow exists even though public
+  self-registration was already available — only this endpoint can set role/verified status at
+  creation time.
 - `GET /users/{id}`, `PATCH /users/{id}`, `DELETE /users/{id}`
-- `PATCH /users/{id}/role` — change role (admin only) — **not yet consumed by the frontend**; the
-  built `/admin/users` list/edit/delete (`src/routes/admin/users/`) deliberately shows role
-  read-only everywhere and never calls this endpoint — role change is its own separate step.
+- `PATCH /users/{id}/role` — change role (admin only) — **still not consumed by the frontend**; the
+  built `/admin/users` list/edit/delete deliberately shows role read-only everywhere (including on
+  the new create form's dropdown, which sets role once at creation but never changes it again) and
+  never calls this endpoint — role *change* for an existing user is its own separate, still-⬜ step.
+- `PATCH /users/{id}/verify-email` — **now wired up** as two named actions,
+  `verifyEmail`/`unverifyEmail`, in `src/routes/admin/users/[id]/+page.server.ts`. Each posts a
+  fixed `{ isEmailVerified: true | false }` — no client-supplied "current status" is trusted — and
+  is a **separate action/button** from the main "Save changes" (profile-fields) form on the edit
+  page, not a checkbox folded into it (confirmed with the human). Setting `true` also clears any
+  outstanding verification token server-side.
 - `GET /users/me`, `PATCH /users/me` — current user profile
 - `PATCH /users/avatar` — select predefined avatar
 - `GET /users/avatar-options`, `POST /users/avatar-options`, `DELETE /users/avatar-options/{id}` (admin manage)
