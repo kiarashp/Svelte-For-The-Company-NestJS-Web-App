@@ -39,8 +39,8 @@ Per-route guards then narrow further (e.g. user-management is admin-only).
 | Create post | ✅ | ✅ | ✅ | ❌ |
 | Edit / delete **own** post | ✅ | ✅ | own | ❌ |
 | Edit / delete **any** post | ✅ | ✅ | ❌ | ❌ |
-| Attach / detach tags **on own post** | ✅ | own | own | ❌ |
-| Upload / delete post images | ✅ | own | own | ❌ |
+| Attach / detach tags **on** post | ✅ | ✅ | own | ❌ |
+| Upload / delete post images | ✅ | ✅ | own | ❌ |
 | Manage post meta-options | ✅ | own | own | ❌ |
 | Manage **tag vocabulary** (`/tags` CRUD) | ✅ | ✅ | ❌ | ❌ |
 | Manage users | ✅ | ❌ | ❌ | ❌ |
@@ -53,7 +53,8 @@ Per-route guards then narrow further (e.g. user-management is admin-only).
 
 Two separate "tag" capabilities — don't conflate them:
 - **Attach/detach tags on a post** (`POST/DELETE /posts/{id}/tags`) → `editor, author, admin`;
-  editor/author limited to their **own** posts.
+  only **editor** is limited to their own posts — author/admin can tag/untag any post (same as
+  edit/delete).
 - **Tag vocabulary CRUD** (`POST /tags`, `PATCH /tags/{id}`, `DELETE /tags/{id}`, `DELETE
   /tags/soft/{id}`) → `author, admin` only. **Editors are excluded here per the API** — this is the
   one capability where `author > editor`. (If editors should manage the vocabulary too, that's a
@@ -67,12 +68,16 @@ OpenAPI descriptions), so authors/editors get no product write access.
 Confirmed from the `PATCH/DELETE /posts/{id}` 403 descriptions in `openapi-types.ts`:
 _"requires role: editor, author, admin; EDITOR limited to their own posts"_
 
-- **admin & author (identical for posts)**: may edit/delete **any** post, manage its images, tag it,
-  and edit its meta-options regardless of who wrote it. Both can also **create** posts. Compute
+- **admin & author (identical for posts)**: may edit/delete **any** post, and attach/detach tags or
+  manage images on **any** post, regardless of who wrote it. Both can also **create** posts. Compute
   this in the server `load` and pass `canEdit` / `canDelete` booleans to the component.
-- **editor**: same create/edit/delete rights, but **limited to own posts** only
+- **editor**: same create/edit/delete/tag/image rights, but **limited to own posts** only
   (`post.author.id === locals.user.id`). Compute in the server `load` — don't recompute in the UI.
-- The lone difference between author and editor: **author** can manage the tag vocabulary
+- **Meta-options are the one exception to "author == admin."** Both **editor and author** are
+  restricted to their own post's meta-options there — only admin is unrestricted. (Backend reason:
+  `MetaOption` write routes use a separate ownership constant that includes author, unlike every
+  other post sub-resource.)
+- The other real difference between author and editor: **author** can manage the tag vocabulary
   (`/tags` CRUD); **editor** cannot.
 
 ---
@@ -82,14 +87,18 @@ _"requires role: editor, author, admin; EDITOR limited to their own posts"_
 ### Posts
 - `GET /posts` — list (public listing; admin list may need its own filtering)
 - `GET /posts/my` — current user's own posts (the author dashboard list)
-- `GET /posts/{id}` — single post
+- `GET /posts/{id}` — single post, **published only** (mirrors the public by-slug endpoint) — not
+  suitable for the admin edit form, which must be able to load drafts.
+- `GET /posts/{id}/admin` — single post, **any status** (staff dashboard/edit-form load); same
+  ownership rule as `PATCH /posts/{id}` (editor limited to own posts; author/admin unrestricted) —
+  its 401/403/404 is authoritative, no separate ownership check needed on the frontend.
 - `GET /posts/slug/{slug}` — by slug (public detail)
 - `POST /posts` — create (admin, author, editor)
 - `PATCH /posts/{id}` — update (admin, author, editor; author/editor own posts only)
 - `DELETE /posts/{id}` — delete (admin, author, editor; author/editor own posts only)
-- `POST /posts/{id}/tags` / `DELETE /posts/{id}/tags` — add/remove tags (admin, author, editor; own posts only)
-- `GET /posts/{id}/images` / `POST /posts/{id}/images` — list/upload images (own posts only for author/editor)
-- `DELETE /posts/{id}/images/{fileId}` — delete a single post image (own posts only for author/editor)
+- `POST /posts/{id}/tags` / `DELETE /posts/{id}/tags` — add/remove tags (admin, author, editor; editor limited to own posts, author/admin any)
+- `GET /posts/{id}/images` / `POST /posts/{id}/images` — list/upload images (editor limited to own posts; author/admin any)
+- `DELETE /posts/{id}/images/{fileId}` — delete a single post image (editor limited to own posts; author/admin any)
 
 ### Tags
 - `GET /tags` — public list. **Vocabulary CRUD is `author, admin` only** (editors excluded):
@@ -108,7 +117,9 @@ _"requires role: editor, author, admin; EDITOR limited to their own posts"_
 - `GET /audit-logs`
 
 ### Meta options
-- `GET /meta-options/{id}`, `PATCH /meta-options/{id}`, `DELETE /meta-options/{id}`
+- `GET /meta-options/{id}`, `PATCH /meta-options/{id}`, `DELETE /meta-options/{id}` — admin, author,
+  editor; **both editor and author** are limited to their own post's meta-options here — the one
+  post sub-resource where author is NOT treated like admin.
 
 ### Products (writes admin-only; reads public; lists **are paginated**)
 - `GET /products` — published list; filters `productTypeId` | `typeSlug`, `q`, `sort` (`newest`/`oldest`/`name`), `specs[...]`; **paginated** (`page`/`limit`, `{ data, meta, links }` envelope)

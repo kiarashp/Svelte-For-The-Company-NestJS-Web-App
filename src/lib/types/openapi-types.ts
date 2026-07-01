@@ -283,6 +283,23 @@ export interface paths {
         patch: operations["PostsController_update"];
         trace?: never;
     };
+    "/posts/{id}/admin": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a single post by ID, any status (author and admin dashboard view) */
+        get: operations["PostsController_findOneForEdit"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/posts/{id}/tags": {
         parameters: {
             query?: never;
@@ -2488,6 +2505,51 @@ export interface operations {
             };
             /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
             403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    PostsController_findOneForEdit: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                id: number;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        apiVersion?: string;
+                        data?: components["schemas"]["Post"];
+                    };
+                };
+            };
+            /** @description Unauthorized — missing or invalid access token */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Forbidden — requires role: editor, author, admin; EDITOR limited to their own posts */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Post not found */
+            404: {
                 headers: {
                     [name: string]: unknown;
                 };
