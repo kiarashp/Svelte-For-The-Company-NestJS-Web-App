@@ -3,8 +3,8 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-07-01_ (Post create + post edit built; post list bug fix — see Phase 4 notes;
-Playwright e2e testing infra added — see "Testing infrastructure" below)
+_Last updated: 2026-07-01_ (Post create + post edit + post delete built; post list bug fix — see
+Phase 4 notes; Playwright e2e testing infra added — see "Testing infrastructure" below)
 
 ---
 
@@ -26,11 +26,13 @@ Playwright e2e testing infra added — see "Testing infrastructure" below)
 Playwright is set up under `tests/` and runs against the real local backend (no mocking). Coverage:
 `tests/auth.spec.ts` (login for all 4 seeded roles via `tests/global-setup.ts`, wrong password,
 logout, register), `tests/admin-access.spec.ts` (role-gate matrix — guest → `/login`, `user` → 403,
-staff → through), and `tests/admin-posts.spec.ts` (post list loads without the `.data`-envelope
-`loadError`, post create redirects and the new post appears in the list). All 12 specs pass as of
-this writing. Not covered yet: post edit, post delete, tags, users, audit logs, products — add
-specs there when those areas get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not
-installed — see root `CLAUDE.md` → "Testing" for why.
+staff → through), `tests/admin-posts.spec.ts` (post list loads without the `.data`-envelope
+`loadError`, post create redirects and the new post appears in the list), and
+`tests/admin-posts-delete.spec.ts` (admin deletes their own post and it disappears from the list;
+editor gets the backend's `403` navigating directly to another author's delete route — the
+ownership rule). All 15 specs pass as of this writing. Not covered yet: post edit, tags, users,
+audit logs, products — add specs there when those areas get e2e-worthy. Run with `pnpm test:e2e`.
+Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for why.
 
 ---
 
@@ -119,7 +121,7 @@ installed — see root `CLAUDE.md` → "Testing" for why.
 | Post list / dashboard | ✅ | — |
 | Post create | ✅ | — |
 | Post edit (ownership rules) | ✅ | — |
-| Post delete | ⬜ | — |
+| Post delete | ✅ | — |
 | User management | ⬜ | — |
 | Role change | ⬜ | — |
 | Audit log viewer | ⬜ | — |
