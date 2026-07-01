@@ -3,8 +3,9 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-07-01_ (Post create + post edit + post delete built; post list bug fix — see
-Phase 4 notes; Playwright e2e testing infra added — see "Testing infrastructure" below)
+_Last updated: 2026-07-02_ (User management — list/view/edit/delete — built; post create + post
+edit + post delete built; post list bug fix — see Phase 4 notes; Playwright e2e testing infra
+added — see "Testing infrastructure" below)
 
 ---
 
@@ -27,12 +28,21 @@ Playwright is set up under `tests/` and runs against the real local backend (no 
 `tests/auth.spec.ts` (login for all 4 seeded roles via `tests/global-setup.ts`, wrong password,
 logout, register), `tests/admin-access.spec.ts` (role-gate matrix — guest → `/login`, `user` → 403,
 staff → through), `tests/admin-posts.spec.ts` (post list loads without the `.data`-envelope
-`loadError`, post create redirects and the new post appears in the list), and
+`loadError`, post create redirects and the new post appears in the list),
 `tests/admin-posts-delete.spec.ts` (admin deletes their own post and it disappears from the list;
 editor gets the backend's `403` navigating directly to another author's delete route — the
-ownership rule). All 15 specs pass as of this writing. Not covered yet: post edit, tags, users,
-audit logs, products — add specs there when those areas get e2e-worthy. Run with `pnpm test:e2e`.
-Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for why.
+ownership rule), `tests/admin-users.spec.ts` (guest/author/editor gates on the admin-only
+`/admin/users` narrowing, list loads without a `loadError`, admin edits a user's first name), and
+`tests/admin-users-delete.spec.ts` (admin deletes a non-self user; the admin's own row omits the
+delete link and direct navigation to its delete route gets the server's `403`). All 22 specs pass
+as of this writing. Not covered yet: tags, audit logs, products — add specs there when those areas
+get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not installed — see root
+`CLAUDE.md` → "Testing" for why.
+
+> Two test-writing gotchas surfaced while building the user-management specs (`browser.newContext()`
+> silently inheriting the enclosing `storageState`; an SSR-hydration race that can clobber
+> Playwright's `.fill()` on pre-populated edit forms) — recorded in root `CLAUDE.md` → "Testing",
+> not duplicated here. Apply the hydration-wait fix when post edit gets its own spec.
 
 ---
 
@@ -114,6 +124,16 @@ Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for
 > The underlying `400` itself was a backend query-validation issue (now fixed backend-side) — see
 > `src/CLAUDE.md` → API client rules for the "always check `error`/`response.ok`" convention this
 > introduced, which should be followed in every new `load`/action from here on.
+>
+> **User management scope (confirmed with the human):** list + view/edit + delete of existing
+> users at `/admin/users` (admin-only — see `src/routes/admin/users/+layout.server.ts`, which
+> narrows the shared staff gate). **Role change is a deliberately separate, later step** — role is
+> shown read-only everywhere here, no dropdown, `PATCH /users/{id}/role` is untouched. The edit form
+> includes an optional password-reset field (blank = unchanged). There is no admin "create user"
+> flow — registration already covers that. **Self-delete is blocked**: the signed-in admin's own row
+> has no delete link, and direct navigation to `/admin/users/{ownId}/delete` gets a server-side
+> `403` (there's no backend guard against it, so the frontend enforces it). `GET /users` has no
+> search/filter query param — only `page`/`limit` — so the list is pagination-only, no search box.
 
 | Step | Status | Blocked by |
 |---|:--:|---|
@@ -122,7 +142,7 @@ Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for
 | Post create | ✅ | — |
 | Post edit (ownership rules) | ✅ | — |
 | Post delete | ✅ | — |
-| User management | ⬜ | — |
+| User management | ✅ | — |
 | Role change | ⬜ | — |
 | Audit log viewer | ⬜ | — |
 | Avatar option management | ⬜ | — |

@@ -265,6 +265,30 @@ Naming: components `PascalCase.svelte`; routes per SvelteKit convention (`+page.
   `SEED_ADMIN_PASSWORD` etc. (same var names as the backend's `pnpm run seed:dev`) live in the
   gitignored `.env.test.local` — never put real credentials in `.env.test`.
 - Run with `pnpm test:e2e` (headless) or `pnpm test:e2e:ui` (interactive debugging).
+- **The backend's rate limiting is environment-gated, not just per-route.** When the backend runs
+  with `NODE_ENV=development` (e.g. `pnpm run start:dev`), its global throttler limit is
+  effectively removed (`1_000_000`/60s) — every endpoint, not just the ones with a `@SkipThrottle`
+  bypass, including `GET /users/me` (called on every request by `hooks.server.ts`) and
+  `POST /users` (registration). Production/staging/`NODE_ENV=test` keep the real `60 req/60s` cap.
+  So a `429` from `GET /users/me`, `POST /users`, or any other non-sign-in endpoint during local
+  Playwright runs means the backend **isn't** running in development mode (or was restarted into a
+  different mode) — restart it with `pnpm run start:dev`, don't add retry/backoff code for it. The
+  `POST /auth/sign-in` throttle handling above (`Retry-After`, `loginAs` retry loop) exists for
+  staging/prod-like backends and still applies there, but is not expected to trigger against a
+  properly-started local dev backend.
+- **`browser.newContext()` inherits the enclosing `test.use({ storageState })` by default.** A test
+  that needs a genuinely logged-out second context (e.g. to exercise `/register`, which redirects
+  an already-authenticated visitor away) must pass `{ storageState: undefined }` explicitly, or the
+  new context silently carries the describe block's authenticated session.
+- **Edit forms are a real hydration-race risk for Playwright `.fill()`.** Inputs are SSR-prefilled
+  via a one-way `value={...}` binding (not `bind:value`). Filling such an input immediately after
+  navigating can race client-side hydration, which re-applies the original SSR value a moment later
+  and silently clobbers the fill — the page still redirects normally, so the failure only shows up
+  as "the saved value didn't change" on the next read. `await page.waitForLoadState('networkidle')`
+  before filling avoids it. Create forms never hit this (they start blank, nothing for hydration to
+  reset to), which is why it went undetected until the first edit-form spec was written
+  (`tests/admin-users.spec.ts`). Apply the same wait in any future spec that fills a pre-populated
+  edit form (e.g. the still-uncovered post edit form).
 
 ---
 

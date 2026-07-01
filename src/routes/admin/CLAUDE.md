@@ -105,13 +105,23 @@ _"requires role: editor, author, admin; EDITOR limited to their own posts"_
   `POST /tags`, `PATCH /tags/{id}`, `DELETE /tags/{id}` (hard), `DELETE /tags/soft/{id}` (soft).
 
 ### Users (admin)
-- `GET /users` (paginated: `?page&limit`), `POST /users`, `POST /users/create-many`
+- `GET /users` (paginated: `?page&limit` **only** — no search/filter query param exists; the
+  `/admin/users` list is pagination-only, no search box)
+- `POST /users`, `POST /users/create-many`
 - `GET /users/{id}`, `PATCH /users/{id}`, `DELETE /users/{id}`
-- `PATCH /users/{id}/role` — change role (admin only)
+- `PATCH /users/{id}/role` — change role (admin only) — **not yet consumed by the frontend**; the
+  built `/admin/users` list/edit/delete (`src/routes/admin/users/`) deliberately shows role
+  read-only everywhere and never calls this endpoint — role change is its own separate step.
 - `GET /users/me`, `PATCH /users/me` — current user profile
 - `PATCH /users/avatar` — select predefined avatar
 - `GET /users/avatar-options`, `POST /users/avatar-options`, `DELETE /users/avatar-options/{id}` (admin manage)
 - `GET /users/{id}/profile` — public author/editor profile
+
+`DELETE /users/{id}` has **no backend guard against an admin deleting their own account** — the
+frontend enforces this itself in `src/routes/admin/users/[id]/delete/+page.server.ts` (both `load`
+and the `delete` action check `id === locals.user.id` and throw `403`), and the list template
+omits the delete link on the signed-in admin's own row. If this endpoint ever gains its own
+server-side self-delete guard, the frontend check becomes redundant but still harmless.
 
 ### Audit logs (admin)
 - `GET /audit-logs`
