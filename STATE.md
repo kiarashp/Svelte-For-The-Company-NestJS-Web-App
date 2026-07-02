@@ -3,7 +3,8 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-07-02_ (User management — list/view/edit/delete + admin-create-user +
+_Last updated: 2026-07-02_ (Audit log viewer built — filters, sortable columns, deleted-user-safe
+user column, see Phase 4 notes; user management — list/view/edit/delete + admin-create-user +
 email-verified toggle + role change — built; post create + post edit + post delete built; post
 list bug fix — see Phase 4 notes; Playwright e2e testing infra added — see "Testing
 infrastructure" below)
@@ -35,12 +36,14 @@ editor gets the backend's `403` navigating directly to another author's delete r
 ownership rule), `tests/admin-users.spec.ts` (guest/author/editor gates on the admin-only
 `/admin/users` narrowing, list loads without a `loadError`, admin edits a user's first name, admin
 creates a user with a chosen role via `/admin/users/new`, admin toggles a user's email-verified
-status via the edit page's separate verify/unverify action), and `tests/admin-users-delete.spec.ts`
+status via the edit page's separate verify/unverify action), `tests/admin-users-delete.spec.ts`
 (admin deletes a non-self user; the admin's own row omits the delete link and direct navigation to
-its delete route gets the server's `403`). All 24 specs pass as of this writing. Not covered yet:
-tags, audit logs, products, role change, self-verify-toggle guard — add specs there when those
-areas get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not installed — see root
-`CLAUDE.md` → "Testing" for why.
+its delete route gets the server's `403`), and `tests/admin-audit-logs.spec.ts` (guest/author/editor
+gates on the admin-only viewer, list loads without a `loadError`, column-header sorting — asc then
+desc, asserted on real ID-column ordering — and the action-filter GET form updating the URL and
+re-rendering cleanly). All 30 specs pass as of this writing. Not covered yet: tags, products, role
+change, self-verify-toggle guard — add specs there when those areas get e2e-worthy. Run with
+`pnpm test:e2e`. Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for why.
 
 > Role change (`/admin/users/{id}/role`) and the self-verify-toggle guard on
 > `verifyEmail`/`unverifyEmail` were checked with one-off Playwright scripts run manually against
@@ -171,6 +174,17 @@ areas get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not inst
 > per non-self row on `/admin/users`, and a "Change role" link next to the (still read-only) role
 > badge on the edit page. Verified end-to-end against the real backend (role change + revert both
 > confirmed via the UI; invalid-role and same-role-no-op payloads handled cleanly server-side).
+>
+> **Audit log viewer (built):** read-only table at `/admin/audit-logs` (admin-only narrowing guard
+> in its `+page.server.ts` — no sub-routes, so no layout guard). Exact-match `action`/`entity`
+> filters as a GET form (state lives in the URL), click-to-sort column headers (all six columns,
+> asc/desc toggle, jumps to page 1 on sort change), and pagination — filters + sort + page all
+> carry each other along in every link. Two follow-ups raised by the human after v1 shipped were
+> resolved same-day by backend additions (`sortBy`/`order` params and an embedded per-row `user`
+> snapshot with a `deleted` flag; types regenerated): hard-deleted users now render as unlinked
+> "#id (deleted)" instead of 404ing links, live users show a linked name. Dates render d/m/y 24 h
+> via `toLocaleString('en-GB')` (human-requested). Endpoint details in
+> `src/routes/admin/CLAUDE.md` → "Audit logs (admin)".
 
 | Step | Status | Blocked by |
 |---|:--:|---|
@@ -181,7 +195,7 @@ areas get e2e-worthy. Run with `pnpm test:e2e`. Vitest is intentionally not inst
 | Post delete | ✅ | — |
 | User management | ✅ | — |
 | Role change | ✅ | — |
-| Audit log viewer | ⬜ | — |
+| Audit log viewer | ✅ | — |
 | Avatar option management | ⬜ | — |
 | Tag management (vocabulary CRUD — author/admin) | ⬜ | — |
 | Image upload + delete per post (own posts) | ⬜ | — |

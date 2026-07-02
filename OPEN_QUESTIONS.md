@@ -59,6 +59,12 @@ management, roles, audit log, avatar options, tags.) Confirm the set before buil
 What does each list show when empty? What's the 404 / 403 / error page treatment?
 → _Unblocks: Phase 3 + Phase 4 → error handling_
 
+> **Resolved 2026-07-02 (backend shipped + types regenerated):** Q-AUDIT-1 (deleted users in the
+> audit log — backend now embeds a `user` snapshot with a `deleted` flag on every row) and
+> Q-AUDIT-2 (sortable columns — `sortBy`/`order` params added, all six columns, default
+> `createdAt desc`). Both are built into `/admin/audit-logs`; facts recorded in
+> `src/routes/admin/CLAUDE.md` → "Audit logs (admin)".
+
 ---
 
 ## Product / design

@@ -946,6 +946,21 @@ export interface components {
              */
             password?: string;
         };
+        AuditLogUserSnapshot: {
+            /** @example 42 */
+            id: number;
+            /** @example Ada */
+            firstName?: string | null;
+            /** @example Lovelace */
+            lastName?: string | null;
+            /** @example ada@example.com */
+            email?: string | null;
+            /**
+             * @description True when the referenced user no longer exists (hard-deleted)
+             * @example false
+             */
+            deleted: boolean;
+        };
         AuditLog: {
             /** @example 1 */
             id: number;
@@ -959,6 +974,7 @@ export interface components {
             entityId: number;
             /** Format: date-time */
             createdAt: string;
+            user?: components["schemas"]["AuditLogUserSnapshot"] | null;
         };
         MetaOption: {
             /** @example 1 */
@@ -2253,6 +2269,10 @@ export interface operations {
                 entity?: string;
                 /** @description Filter by action — exact match */
                 action?: "CREATE" | "UPDATE" | "DELETE" | "SOFT_DELETE";
+                /** @description Column to sort by */
+                sortBy?: "id" | "action" | "entity" | "entityId" | "userId" | "createdAt";
+                /** @description Sort direction */
+                order?: "asc" | "desc";
             };
             header?: never;
             path?: never;

@@ -150,7 +150,18 @@ omits the delete link on the signed-in admin's own row. If this endpoint ever ga
 server-side self-delete guard, the frontend check becomes redundant but still harmless.
 
 ### Audit logs (admin)
-- `GET /audit-logs`
+- `GET /audit-logs` — **wired up** at `/admin/audit-logs` (read-only viewer; admin-only narrowing
+  guard lives in its `+page.server.ts` since the section has no sub-routes). Paginated
+  (`page`/`limit`, standard `{ data, meta, links }` envelope). Optional **exact-match** filters:
+  `entity` (free text, e.g. `Post`) and `action` (`CREATE | UPDATE | DELETE | SOFT_DELETE`).
+  Sorting: `sortBy` (`id | action | entity | entityId | userId | createdAt`) + `order`
+  (`asc | desc`), default `createdAt desc`; invalid values → backend `400`, so the frontend
+  validates against the enums and silently falls back to the default instead of forwarding junk.
+  Each row embeds a **user snapshot** `user: { id, firstName?, lastName?, email?, deleted } |
+  null` (null = no actor) that tolerates hard-deleted users — `deleted: true` means the user row
+  is gone (names/email null), so render it unlinked ("#id (deleted)") instead of linking to
+  `/admin/users/{id}`, which would 404. Dates render via `toLocaleString('en-GB')` (d/m/y, 24 h —
+  human-requested format).
 
 ### Meta options
 - `GET /meta-options/{id}`, `PATCH /meta-options/{id}`, `DELETE /meta-options/{id}` — admin, author,
