@@ -137,6 +137,15 @@ envelopes — new code may use the typed client directly.
 - `POST /users` (registration) success redirects straight to `/login` with **no confirmation
   message** — there is no "check your email" state in the UI. The backend fires the verification
   email regardless; the frontend just doesn't say so.
+- **Successful sign-in redirects by role, not always to `/`**: staff (`admin`/`author`/`editor`)
+  land on `/admin`; plain `user` lands on `/`. Both the `login` and `google` actions in
+  `src/routes/login/+page.server.ts` resolve this via `resolveRedirectTarget`, a `GET /users/me`
+  call made right after the token pair is issued (same manual `Authorization: Bearer` pattern as
+  `hooks.server.ts`, since `locals` isn't populated yet inside the action — the role isn't known
+  any other way at this point). A role-lookup failure falls back to `/` rather than blocking
+  sign-in. This changed the assumption baked into `tests/fixtures.ts`'s `loginAs` helper (it now
+  waits for navigation away from `/login`, not an exact redirect to `/`) — keep that in mind if a
+  future auth change touches redirect behavior again.
 
 **Auth-route code / `hooks.server.ts` parse `res.json()` manually** (written against the older
 `content?: never` types). The manual parse is fine, but **you must still read the entity from

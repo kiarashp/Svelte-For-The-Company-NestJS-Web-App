@@ -69,6 +69,13 @@
 				>
 					Product Types
 				</a>
+				<a
+					href={resolve('/admin/avatar-options')}
+					class="nav-link"
+					class:active={isActive('/admin/avatar-options')}
+				>
+					Avatar Options
+				</a>
 			{/if}
 		</nav>
 

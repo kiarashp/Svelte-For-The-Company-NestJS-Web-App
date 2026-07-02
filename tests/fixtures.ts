@@ -42,7 +42,8 @@ async function waitOutSignInThrottle(): Promise<void> {
 }
 
 // One fill-and-submit of the real /login form. Returns the error banner text on failure, or null
-// on a successful redirect to '/'.
+// on a successful redirect (staff roles land on '/admin', plain 'user' lands on '/' — the login
+// action picks the target by role, so success here is just "no longer on /login").
 async function submitLoginForm(
 	page: Page,
 	email: string,
@@ -55,7 +56,7 @@ async function submitLoginForm(
 
 	const alert = page.getByRole('alert');
 	const outcome = await Promise.race([
-		page.waitForURL('/').then(() => 'ok' as const),
+		page.waitForURL((url) => !url.pathname.startsWith('/login')).then(() => 'ok' as const),
 		alert.waitFor({ state: 'visible' }).then(() => 'error' as const)
 	]);
 	if (outcome === 'ok') return null;

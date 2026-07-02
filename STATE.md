@@ -3,11 +3,12 @@
 > Phased roadmap. Unblocked phases are ready to build now. Blocked phases wait on answers in
 > `OPEN_QUESTIONS.md`. Follow the session workflow in root `CLAUDE.md`.
 
-_Last updated: 2026-07-02_ (Audit log viewer built — filters, sortable columns, deleted-user-safe
-user column, see Phase 4 notes; user management — list/view/edit/delete + admin-create-user +
-email-verified toggle + role change — built; post create + post edit + post delete built; post
-list bug fix — see Phase 4 notes; Playwright e2e testing infra added — see "Testing
-infrastructure" below)
+_Last updated: 2026-07-02_ (Avatar option management built — see Phase 4 notes; post-login redirect
+now sends staff to `/admin` instead of `/` — see Phase 2 notes; audit log viewer built — filters,
+sortable columns, deleted-user-safe user column, see Phase 4 notes; user management —
+list/view/edit/delete + admin-create-user + email-verified toggle + role change — built; post
+create + post edit + post delete built; post list bug fix — see Phase 4 notes; Playwright e2e
+testing infra added — see "Testing infrastructure" below)
 
 ---
 
@@ -41,9 +42,12 @@ status via the edit page's separate verify/unverify action), `tests/admin-users-
 its delete route gets the server's `403`), and `tests/admin-audit-logs.spec.ts` (guest/author/editor
 gates on the admin-only viewer, list loads without a `loadError`, column-header sorting — asc then
 desc, asserted on real ID-column ordering — and the action-filter GET form updating the URL and
-re-rendering cleanly). All 30 specs pass as of this writing. Not covered yet: tags, products, role
-change, self-verify-toggle guard — add specs there when those areas get e2e-worthy. Run with
-`pnpm test:e2e`. Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for why.
+re-rendering cleanly). All 33 specs pass as of this writing (`loginAs` in `tests/fixtures.ts` now
+waits for navigation away from `/login` rather than an exact redirect to `/`, since staff logins
+land on `/admin` — see Phase 2 notes below). Not covered yet: tags, products, role change,
+self-verify-toggle guard, avatar options — add specs there when those areas get e2e-worthy. Run
+with `pnpm test:e2e`. Vitest is intentionally not installed — see root `CLAUDE.md` → "Testing" for
+why.
 
 > Role change (`/admin/users/{id}/role`) and the self-verify-toggle guard on
 > `verifyEmail`/`unverifyEmail` were checked with one-off Playwright scripts run manually against
@@ -84,6 +88,13 @@ change, self-verify-toggle guard — add specs there when those areas get e2e-wo
 
 > After Phase 1. Registration endpoint confirmed: `POST /users` (see src/CLAUDE.md).
 > All other auth routes are fully specified by existing rules.
+>
+> **Post-login redirect updated:** A1 (`login`) and A4 (`google`) now redirect by role after
+> issuing tokens — staff (`admin`/`author`/`editor`) land on `/admin`, plain `user` still lands on
+> `/` — instead of always redirecting to `/`. See `src/CLAUDE.md` → "Auth flow" for the mechanism
+> (`resolveRedirectTarget` in `src/routes/login/+page.server.ts`). This broke the assumption baked
+> into `tests/fixtures.ts`'s `loginAs` helper and one assertion in `tests/auth.spec.ts` — both were
+> updated (see "Testing infrastructure" above); all 33 Playwright specs still pass.
 
 | # | Step | Status | Notes |
 |---|---|:--:|---|
@@ -185,6 +196,20 @@ change, self-verify-toggle guard — add specs there when those areas get e2e-wo
 > "#id (deleted)" instead of 404ing links, live users show a linked name. Dates render d/m/y 24 h
 > via `toLocaleString('en-GB')` (human-requested). Endpoint details in
 > `src/routes/admin/CLAUDE.md` → "Audit logs (admin)".
+>
+> **Avatar option management (built):** admin-only pool management at `/admin/avatar-options`
+> (list — bare-array thumbnail grid, no pagination, same shape as `/product-types`; `new/` —
+> multipart file-upload create; `[id]/delete/` — confirm-delete, resolving its target from the
+> full list since there's no GET-by-id). `POST /users/avatar-options` had `requestBody?: never` in
+> `openapi-types.ts` — genuinely undocumented, not just mistyped — and was confirmed against the
+> real backend to be a multipart upload with field name `file`; see `src/routes/admin/CLAUDE.md` →
+> "Avatar options (admin)" for the full contract. A sidebar link was added to the admin nav
+> (`src/routes/admin/+layout.svelte`, admin-only section) so the feature is actually reachable —
+> it had been built without one initially, caught by the human. No edit endpoint exists (list/
+> create/delete only), and the end-user avatar **picker** (`PATCH /users/avatar`) remains separate,
+> unbuilt scope. Verified end-to-end against the real backend via a one-off Playwright script
+> (create, list-grows, delete, list-shrinks; editor 403; guest redirect), then deleted — same
+> no-permanent-spec precedent as role change.
 
 | Step | Status | Blocked by |
 |---|:--:|---|
@@ -196,7 +221,7 @@ change, self-verify-toggle guard — add specs there when those areas get e2e-wo
 | User management | ✅ | — |
 | Role change | ✅ | — |
 | Audit log viewer | ✅ | — |
-| Avatar option management | ⬜ | — |
+| Avatar option management | ✅ | — |
 | Tag management (vocabulary CRUD — author/admin) | ⬜ | — |
 | Image upload + delete per post (own posts) | ⬜ | — |
 | Meta-options | ⬜ | — |

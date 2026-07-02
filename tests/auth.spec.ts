@@ -11,8 +11,9 @@ test.describe('login', () => {
 		// global-setup.ts already proves all 4 seeded roles authenticate (it logs in as each one
 		// to build their cached sessions) — this is the one explicit, readable assertion that the
 		// login form itself (same code path for every role) actually works end to end.
+		// Admin is staff, so the login action sends it straight to /admin, not the homepage.
 		await loginAs(page, 'admin');
-		await expect(page).toHaveURL('/');
+		await expect(page).toHaveURL('/admin');
 	});
 
 	test('wrong password shows an error, not a silent failure', async ({ page }) => {

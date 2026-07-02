@@ -139,8 +139,10 @@ _"requires role: editor, author, admin; EDITOR limited to their own posts"_
   verified" status text still shows, just without the button). Rationale: an admin marking
   themselves unverified would fail `/auth/sign-in` next time with no other admin around to fix it.
 - `GET /users/me`, `PATCH /users/me` — current user profile
-- `PATCH /users/avatar` — select predefined avatar
-- `GET /users/avatar-options`, `POST /users/avatar-options`, `DELETE /users/avatar-options/{id}` (admin manage)
+- `PATCH /users/avatar` — select predefined avatar (end-user picker; not yet built — separate scope
+  from the admin-side pool management below)
+- `GET /users/avatar-options`, `POST /users/avatar-options`, `DELETE /users/avatar-options/{id}` —
+  admin manage; **now wired up** — see "Avatar options (admin)" below.
 - `GET /users/{id}/profile` — public author/editor profile
 
 `DELETE /users/{id}` has **no backend guard against an admin deleting their own account** — the
@@ -162,6 +164,24 @@ server-side self-delete guard, the frontend check becomes redundant but still ha
   is gone (names/email null), so render it unlinked ("#id (deleted)") instead of linking to
   `/admin/users/{id}`, which would 404. Dates render via `toLocaleString('en-GB')` (d/m/y, 24 h —
   human-requested format).
+
+### Avatar options (admin)
+- `GET /users/avatar-options`, `POST /users/avatar-options`, `DELETE /users/avatar-options/{id}` —
+  **wired up** at `/admin/avatar-options` (list — bare-array thumbnail grid, no pagination, same
+  shape as `/product-types`; `new/` — create; `[id]/delete/` — confirm-delete). Admin-only guard
+  lives in a section `+layout.server.ts` (it has sub-routes, same shape as `admin/users`, unlike
+  the single-page audit-logs precedent). `GET` returns `AvatarOption[]` at `.data` — `{ id, url,
+  publicId, createdAt }` (Cloudinary-hosted). There is no GET-by-id, so the delete confirm page
+  resolves its target by fetching the full list and finding the matching id, and there is no
+  PATCH/edit endpoint at all — list, create, delete only.
+- **`POST /users/avatar-options` has `requestBody?: never` in `openapi-types.ts` — genuinely
+  undocumented by the generator**, not even a mistyped `Record<string, never>` placeholder like
+  the product write DTOs. Confirmed against the real backend (manual e2e verification, not a
+  committed spec): it's a **multipart/form-data upload** with field name `file`, returning the
+  created `AvatarOption`. The create action casts around the missing type the same way the
+  mistyped product write DTOs are cast (see `src/CLAUDE.md`).
+- The end-user avatar **picker** (`PATCH /users/avatar`, choosing one of these options) is a
+  separate, not-yet-built profile feature — out of scope for this admin pool-management screen.
 
 ### Meta options
 - `GET /meta-options/{id}`, `PATCH /meta-options/{id}`, `DELETE /meta-options/{id}` — admin, author,

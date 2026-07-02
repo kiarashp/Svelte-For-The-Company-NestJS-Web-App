@@ -6,6 +6,26 @@ import type { Actions, PageServerLoad } from './$types';
 const ACCESS_COOKIE = 'access_token';
 const REFRESH_COOKIE = 'refresh_token';
 
+const STAFF_ROLES = new Set(['admin', 'author', 'editor']);
+
+// Staff (admin/author/editor) work out of the admin panel, so send them straight there instead
+// of the public homepage. Plain 'user' accounts have no reason to land on /admin.
+async function resolveRedirectTarget(fetchFn: typeof fetch, accessToken: string): Promise<string> {
+	try {
+		// Same GET /users/me + manual Bearer header pattern as hooks.server.ts — locals aren't
+		// populated yet inside this action, so the role has to be looked up directly.
+		const res = await fetchFn(`${PUBLIC_API_URL}/users/me`, {
+			headers: { Authorization: `Bearer ${accessToken}` }
+		});
+		if (!res.ok) return '/';
+		const role: string | undefined = (await res.json()).data?.role;
+		return role && STAFF_ROLES.has(role) ? '/admin' : '/';
+	} catch {
+		// Role lookup failing shouldn't block sign-in — fall back to the homepage.
+		return '/';
+	}
+}
+
 export const load: PageServerLoad = async ({ locals }) => {
 	// Redirect authenticated users away — login page is only for guests.
 	if (locals.user) redirect(302, '/');
@@ -73,7 +93,7 @@ export const actions: Actions = {
 			maxAge: 86400 // 24 hours — matches backend refresh TTL
 		});
 
-		redirect(302, '/');
+		redirect(302, await resolveRedirectTarget(fetch, tokens.accessToken));
 	},
 
 	// SvelteKit rule: when any named action exists, the 'default' action is forbidden.
@@ -145,6 +165,6 @@ export const actions: Actions = {
 			maxAge: 86400 // 24 hours — matches backend refresh TTL
 		});
 
-		redirect(302, '/');
+		redirect(302, await resolveRedirectTarget(fetch, tokens.accessToken));
 	}
 };
